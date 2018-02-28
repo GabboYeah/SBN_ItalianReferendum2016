@@ -23,46 +23,60 @@ import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
+import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builder.PoliticiansIndexBuilder;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builder.TweetsIndexBuilder;
 
 /**
  *
  * @author Gabriele
  */
-public class TweetsIndexManager {
+public class PoliticiansIndexManager {
+    private static PoliticiansIndexManager instance = new PoliticiansIndexManager();
     
-    private static TweetsIndexManager instance = new TweetsIndexManager();
-    
-    private static String sourcePath = "stream";
-    private static String indexPath = "AllTweetsIndex";
+    private static String sourcePath = "politicians.csv";
+    private static String indexPath = "AllPoliticiansIndex";
     
     
-    private TweetsIndexManager(){
-//        File dir = new File("AllTweetsIndex");
+    private PoliticiansIndexManager(){
+//        File dir = new File(indexPath);
 //	
 //        if(!dir.exists()){
 //            this.create();
 //        }
     }
     
-    public static TweetsIndexManager getInstance(){
+    public static PoliticiansIndexManager getInstance(){
       return instance;
     }
     
-    private void create() {
-        System.out.println("TweetsIndex Creation!");
-        TweetsIndexBuilder tib = new TweetsIndexBuilder();      
-        Path streamDirPath = Paths.get(sourcePath);     
-        tib.create(streamDirPath, indexPath);
+    public void create() {
+        System.out.println("PoliticiansIndex Creation!");
+        PoliticiansIndexBuilder tib = new PoliticiansIndexBuilder();      
+        tib.create(sourcePath, indexPath, ",");
     }
     
-    public ArrayList<Document> searchForName(String name) throws IOException{
+    public void getAnalytics() {
+        try{
+            ArrayList<Document> yesResults = searchForVote("si");
+            ArrayList<Document> noResults = searchForVote("no");
+            
+            System.out.println("YES: " + yesResults.size());
+            System.out.println("NO: " + noResults.size());
+            System.out.println("TOT: " + (yesResults.size() + noResults.size()));
+            
+        } catch (IOException ex) {
+            System.out.println("Errore nell'apertura della cartella " + indexPath);
+            ex.printStackTrace();
+        }
+    }
+    
+    public ArrayList<Document> searchForVote(String vote) throws IOException{
         Directory dir = new SimpleFSDirectory(new File(indexPath));
         IndexReader ir = DirectoryReader.open(dir);
         IndexSearcher searcher = new IndexSearcher(ir);
 
-        Query q = new TermQuery(new Term("name", (name).toLowerCase()));
-        TopDocs top = searcher.search(q, 100);
+        Query q = new TermQuery(new Term("vote", vote));
+        TopDocs top = searcher.search(q, 900);
         ScoreDoc[] hits = top.scoreDocs;
 
         ArrayList<Document> results = new ArrayList<>();
@@ -76,5 +90,4 @@ public class TweetsIndexManager {
         
         return results;
     }
-
 }

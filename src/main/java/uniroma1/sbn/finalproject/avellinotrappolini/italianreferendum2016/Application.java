@@ -12,6 +12,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.lucene.document.Document;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.DAO.CSVReader;
+import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.PoliticiansIndexManager;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.TweetsIndexManager;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builder.PoliticiansIndexBuilder;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builder.TweetsIndexBuilder;
@@ -28,16 +29,19 @@ public class Application {
 //        pCSVr.readCSV("senatori-votazione_5.csv", relevantColsSenators); 
         
         TweetsIndexManager tim = TweetsIndexManager.getInstance();
-        //tim.create();
-        try{
-            ArrayList<Document> docs = tim.searchForName("matteo renzi");
-            for(Document doc : docs){
-                System.out.println(doc.get("screenName") +" "+ doc.get("followers"));
-            }
-            
-        } catch (IOException ex) {
-            Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        PoliticiansIndexManager pim = PoliticiansIndexManager.getInstance();
+        
+        pim.create();
+        pim.getAnalytics();
+//        try{
+//            ArrayList<Document> docs = tim.searchForName("matteo renzi");
+//            for(Document doc : docs){
+//                System.out.println(doc.get("screenName") +" "+ doc.get("followers"));
+//            }    
+//        } catch (IOException ex) {
+//            Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+
         //Nome, cognome, gruppo, voto, assenza
 //        int[] relevantColsParl = {4, 3, 15, 18};
 //        int[] relevantColsSenators = {4, 3, 25, 23, 24};

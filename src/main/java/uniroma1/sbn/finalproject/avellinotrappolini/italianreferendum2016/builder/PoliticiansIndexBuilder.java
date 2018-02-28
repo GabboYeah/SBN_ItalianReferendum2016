@@ -54,6 +54,7 @@ public class PoliticiansIndexBuilder{
     private StringField screenName;
 
     public PoliticiansIndexBuilder() {
+        this.politician = new Document();
         this.name = new StringField("name", "", Field.Store.YES);
         this.screenName = new StringField("screenName", "", Field.Store.YES);
         this.vote = new StringField("vote", "", Field.Store.YES);
@@ -63,44 +64,78 @@ public class PoliticiansIndexBuilder{
         politician.add(vote);
         
         groupVote = new HashMap<String, String>();
-        groupVote.put("AP (NCD-UDC)", "no");
-        groupVote.put("DS-CD", "no");
+        groupVote.put("AP", "si");
+        groupVote.put("DS-CD", "si");
         groupVote.put("FI-PdL", "no");
         groupVote.put("FdI", "no");
         groupVote.put("Lega", "no");
         groupVote.put("M5S", "no");
-        groupVote.put("PD", "no");
-        groupVote.put("SCpI", "no");
+        groupVote.put("PD", "si");
+        groupVote.put("SCpI", "si");
         groupVote.put("SI-SEL", "no");
-        groupVote.put("Misto", "no");
+        
+        groupVote.put("Misto", "?");
  
-        groupVote.put("AL-A", "no");
-        groupVote.put("Aut (SVP-UV-PATT-UPT-PSI)", "no");
+        groupVote.put("AL-A", "si");
+        groupVote.put("Aut", "si");
         groupVote.put("CoR", "no");
         groupVote.put("GAL", "no");
     }
     
-    public void create(String csvPath, String indexPath, String delimiter, int[] relevantCols) {
+    public void create(String csvPath, String indexPath, String delimiter) {
         CSVReader csvr = new CSVReader(delimiter, csvPath);
         ArrayList<String[]> rows;
-        try {
+        
+        try {  
+            setBuilderParams(indexPath);
             rows = csvr.readCSV();
         
             String id; 
-
+            String[] result;
+            int followers;
+            
             for(String[] row : rows){
-                String name = row[relevantCols[0]];
-                String surname = row[relevantCols[1]];
-                System.out.println((name + " " + surname).toLowerCase());
-                id = findUserTwitterId(name, surname);
+                String name = row[0];
+                String surname = row[1];
+                result = findUserTwitterId(name, surname);
+                id = result[0];
+                followers = Integer.parseInt(result[1]);
+                System.out.println("Search for : " + name + " " + surname + ", followers: " + followers);
+                if(!id.equals("") && followers >= 1000){
+                    this.name.setStringValue((name + " " + surname).toLowerCase());
+                    this.screenName.setStringValue(id);
 
+                    System.out.println("");
+                    System.out.println(this.politician.get("name"));
+                    System.out.println(this.politician.get("screenName"));
+                    
+                    if(row[2].equals(groupVote.get(row[3]))) {
+                        this.vote.setStringValue(row[2]);
+                        this.writer.addDocument(this.politician);
+                        System.out.println(this.politician.get("vote"));
+                        
+                    } else if(row[2].equals("si") || row[2].equals("no")) {
+                        this.vote.setStringValue(row[2]);
+                        this.writer.addDocument(this.politician);
+                        System.out.println(this.politician.get("vote"));
+                        
+                    } else if(row[2].equals("-") && !row[3].equals("Misto")) {
+                        this.vote.setStringValue(groupVote.get(row[3]));
+                        this.writer.addDocument(this.politician);
+                        System.out.println(this.politician.get("vote"));
+                        
+                    }
+                }
+                System.out.println("----------------");
             }
+            this.writer.commit();
         } catch (IOException ex) {
             System.out.println("Impossibile leggere il CSV!");
+            ex.printStackTrace();
         }
-    }
-    
-    public String findUserTwitterId(String name, String surname) throws IOException{
+    }   
+        
+    public String[] findUserTwitterId(String name, String surname) throws IOException{
         TweetsIndexManager tim = TweetsIndexManager.getInstance();
             
         ArrayList<Document> results = tim.searchForName((name + " " + surname).toLowerCase());
@@ -113,12 +148,12 @@ public class PoliticiansIndexBuilder{
                 id = doc.get("screenName");
             }
         }
-        
-        return id;
+        String[] result = {id, new Integer(max).toString()};
+        return result;
     }
     
-    private void setBuilderParams(String dirName) throws IOException {
-        this.dir = new SimpleFSDirectory(new File(dirName));
+    private void setBuilderParams(String indexPath) throws IOException {
+        this.dir = new SimpleFSDirectory(new File(indexPath));
         this.analyzer = new ItalianAnalyzer(LUCENE_41);
         this.cfg = new IndexWriterConfig(LUCENE_41, analyzer);
         this.writer = new IndexWriter(dir, cfg);
