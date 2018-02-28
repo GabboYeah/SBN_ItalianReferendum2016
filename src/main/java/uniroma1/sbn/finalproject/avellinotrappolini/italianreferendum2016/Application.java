@@ -10,6 +10,7 @@ import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.DAO.CSVReader;
+import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.TweetsIndexManager;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builder.PoliticiansIndexBuilder;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builder.TweetsIndexBuilder;
 
@@ -24,9 +25,8 @@ public class Application {
 //        int[] relevantColsSenators = {4, 3, 25, 23, 24};
 //        pCSVr.readCSV("senatori-votazione_5.csv", relevantColsSenators); 
         
-        TweetsIndexBuilder tib = new TweetsIndexBuilder();      
-        Path streamDirPath = Paths.get("stream");     
-        tib.create(streamDirPath, "AllTweetsIndex");
+        TweetsIndexManager tim = TweetsIndexManager.getInstance();
+        tim.create();
         
         //Nome, cognome, gruppo, voto, assenza
         int[] relevantColsParl = {4, 3, 15, 18};
