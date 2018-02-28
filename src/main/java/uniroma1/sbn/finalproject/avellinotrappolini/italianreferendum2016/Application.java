@@ -24,9 +24,9 @@ public class Application {
 //        int[] relevantColsSenators = {4, 3, 25, 23, 24};
 //        pCSVr.readCSV("senatori-votazione_5.csv", relevantColsSenators); 
         
-//        TweetsIndexBuilder tib = new TweetsIndexBuilder();      
-//        Path streamDirPath = Paths.get("stream");     
-//        tib.create(streamDirPath, "AllTweetsIndex");
+        TweetsIndexBuilder tib = new TweetsIndexBuilder();      
+        Path streamDirPath = Paths.get("stream");     
+        tib.create(streamDirPath, "AllTweetsIndex");
         
         //Nome, cognome, gruppo, voto, assenza
         int[] relevantColsParl = {4, 3, 15, 18};

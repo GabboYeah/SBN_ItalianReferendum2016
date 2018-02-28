@@ -61,7 +61,6 @@ public class TweetsIndexBuilder {
     private StringField hashtags;
     //
     private LongField followers;
-    private LongField favourites;
 
     
     public TweetsIndexBuilder() {
@@ -73,7 +72,6 @@ public class TweetsIndexBuilder {
         this.tweetText = new TextField("tweetText", "", Field.Store.YES);
         this.hashtags = new StringField("hashtags", "", Field.Store.YES);
         this.followers = new LongField("followers", 0L, Field.Store.YES);
-        this.favourites = new LongField("favourites", 0L, Field.Store.YES);
         
         this.tweet.add(this.userId);
         this.tweet.add(this.date);
@@ -82,7 +80,6 @@ public class TweetsIndexBuilder {
         this.tweet.add(this.tweetText);  
         this.tweet.add(this.hashtags);
         this.tweet.add(this.followers);
-        this.tweet.add(this.favourites);
     }
     
     
@@ -129,10 +126,9 @@ public class TweetsIndexBuilder {
                         this.screenName.setStringValue(sw.getStatus().getUser().getScreenName());
                         this.tweetText.setStringValue(sw.getStatus().getText());
                         this.followers.setLongValue((long)sw.getStatus().getUser().getFollowersCount());
-                        this.favourites.setLongValue((long)sw.getStatus().getFavoriteCount());
                         String hashtags = "";
                         for (HashtagEntity hashtag : sw.getStatus().getHashtagEntities()) {
-                            hashtags += ", " + hashtag.getText();
+                            hashtags += hashtag.getText() + " ";
                         }
                         this.hashtags.setStringValue(hashtags);
                         this.writer.addDocument(this.tweet);

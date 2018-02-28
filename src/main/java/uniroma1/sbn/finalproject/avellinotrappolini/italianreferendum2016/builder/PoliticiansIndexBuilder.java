@@ -7,6 +7,8 @@ package uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.build
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.lucene.document.Document;
@@ -28,10 +30,26 @@ import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.DAO.CS
  */
 public class PoliticiansIndexBuilder{
 
-//    public User create(String name, String surname, String vote, String politicGroup) {
-//        String twitterId = findUserTwitterId(name, surname);
-//        return new User(name, surname, politicGroup, vote, twitterId);
-//    }
+    HashMap<String, String> groupVote;
+
+    public PoliticiansIndexBuilder() {
+        groupVote = new HashMap<String, String>();
+        groupVote.put("AP (NCD-UDC)", "no");
+        groupVote.put("DS-CD", "no");
+        groupVote.put("FI-PdL", "no");
+        groupVote.put("FdI", "no");
+        groupVote.put("Lega", "no");
+        groupVote.put("M5S", "no");
+        groupVote.put("PD", "no");
+        groupVote.put("SCpI", "no");
+        groupVote.put("SI-SEL", "no");
+        groupVote.put("Misto", "no");
+ 
+        groupVote.put("AL-A", "no");
+        groupVote.put("Aut (SVP-UV-PATT-UPT-PSI)", "no");
+        groupVote.put("CoR", "no");
+        groupVote.put("GAL", "no");
+    }
     
     public void create(String delimiter, String path, String indexDir, int[] relevantCols) throws IOException {
         CSVReader csvr = new CSVReader(delimiter, path);
@@ -65,7 +83,6 @@ public class PoliticiansIndexBuilder{
                 System.out.println("+TEXT: " + doc.get("tweetText"));
                 System.out.println("+HASHTAGS: " + doc.get("hashtags"));
                 System.out.println("+FOLLOWERS: " + doc.get("followers"));
-                System.out.println("+LIKES: " + doc.get("favourites"));
                 System.out.println("");
 
             }
