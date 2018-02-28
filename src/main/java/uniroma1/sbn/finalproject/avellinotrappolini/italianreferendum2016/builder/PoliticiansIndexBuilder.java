@@ -6,14 +6,23 @@
 package uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builder;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.it.ItalianAnalyzer;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.document.Field;
+import org.apache.lucene.document.LongField;
+import org.apache.lucene.document.StringField;
+import org.apache.lucene.document.TextField;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
+import org.apache.lucene.index.IndexWriter;
+import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
@@ -22,7 +31,9 @@ import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
+import static org.apache.lucene.util.Version.LUCENE_41;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.DAO.CSVReader;
+import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.TweetsIndexManager;
 
 /**
  *
@@ -31,8 +42,26 @@ import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.DAO.CS
 public class PoliticiansIndexBuilder{
 
     HashMap<String, String> groupVote;
+    
+    private Directory dir;
+    private Analyzer analyzer;
+    private IndexWriterConfig cfg;
+    private IndexWriter writer;
+    
+    private Document politician;
+    private StringField vote;
+    private StringField name;
+    private StringField screenName;
 
     public PoliticiansIndexBuilder() {
+        this.name = new StringField("name", "", Field.Store.YES);
+        this.screenName = new StringField("screenName", "", Field.Store.YES);
+        this.vote = new StringField("vote", "", Field.Store.YES);
+        
+        politician.add(name);
+        politician.add(screenName);
+        politician.add(vote);
+        
         groupVote = new HashMap<String, String>();
         groupVote.put("AP (NCD-UDC)", "no");
         groupVote.put("DS-CD", "no");
@@ -51,50 +80,47 @@ public class PoliticiansIndexBuilder{
         groupVote.put("GAL", "no");
     }
     
-    public void create(String delimiter, String path, String indexDir, int[] relevantCols) throws IOException {
-        CSVReader csvr = new CSVReader(delimiter, path);
-        ArrayList<String[]> rows = csvr.readCSV();
-        for(String[] row : rows){
-            String name = row[relevantCols[0]];
-            String surname = row[relevantCols[1]];
-            System.out.println((name + " " + surname).toLowerCase());
-            findUserTwitterId(name, surname);
+    public void create(String csvPath, String indexPath, String delimiter, int[] relevantCols) {
+        CSVReader csvr = new CSVReader(delimiter, csvPath);
+        ArrayList<String[]> rows;
+        try {
+            rows = csvr.readCSV();
+        
+            String id; 
+
+            for(String[] row : rows){
+                String name = row[relevantCols[0]];
+                String surname = row[relevantCols[1]];
+                System.out.println((name + " " + surname).toLowerCase());
+                id = findUserTwitterId(name, surname);
+
+            }
+        } catch (IOException ex) {
+            System.out.println("Impossibile leggere il CSV!");
         }
     }
     
-    public String findUserTwitterId(String name, String surname){
-        try {
-            Directory dir = new SimpleFSDirectory(new File("AllTweetsIndex"));
-            IndexReader ir = DirectoryReader.open(dir);
-            IndexSearcher searcher = new IndexSearcher(ir);
+    public String findUserTwitterId(String name, String surname) throws IOException{
+        TweetsIndexManager tim = TweetsIndexManager.getInstance();
+            
+        ArrayList<Document> results = tim.searchForName((name + " " + surname).toLowerCase());
+        int max = 0;
+        String id = "";
 
-            Query q = new TermQuery(new Term("name", (name + " " + surname).toLowerCase()));
-            TopDocs top = searcher.search(q, 100);
-            ScoreDoc[] hits = top.scoreDocs;
-
-            Document doc = null;
-
-            for (ScoreDoc entry : hits) {
-
-                doc = searcher.doc(entry.doc);
-                System.out.println("-------------------------");
-                System.out.println("+NAME: " + doc.get("name"));
-                System.out.println("+SCREENNAME: " + doc.get("screenName"));
-                System.out.println("+TEXT: " + doc.get("tweetText"));
-                System.out.println("+HASHTAGS: " + doc.get("hashtags"));
-                System.out.println("+FOLLOWERS: " + doc.get("followers"));
-                System.out.println("");
-
+        for(Document doc : results){
+            if(Integer.parseInt(doc.get("followers")) >= max){
+                max = Integer.parseInt(doc.get("followers"));
+                id = doc.get("screenName");
             }
-
-            if(hits.length > 0)
-                return searcher.doc(hits[0].doc).get("screenName");
-            
-            return null;
-            
-        } catch (IOException ex) {
-            Logger.getLogger(PoliticiansIndexBuilder.class.getName()).log(Level.SEVERE, null, ex);
-            return null;
-        }    
-    }  
+        }
+        
+        return id;
+    }
+    
+    private void setBuilderParams(String dirName) throws IOException {
+        this.dir = new SimpleFSDirectory(new File(dirName));
+        this.analyzer = new ItalianAnalyzer(LUCENE_41);
+        this.cfg = new IndexWriterConfig(LUCENE_41, analyzer);
+        this.writer = new IndexWriter(dir, cfg);
+    }
 }

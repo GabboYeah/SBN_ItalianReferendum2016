@@ -37,13 +37,20 @@ public class TweetsIndexManager {
     private static String indexPath = "AllTweetsIndex";
     
     
-    private TweetsIndexManager(){}
+    private TweetsIndexManager(){
+        File dir = new File(indexPath);
+	
+        if(!dir.exists()){
+            this.create();
+        }
+    }
     
     public static TweetsIndexManager getInstance(){
       return instance;
     }
     
-    public void create() {
+    private void create() {
+        System.out.println("TweetsIndex Creation!");
         TweetsIndexBuilder tib = new TweetsIndexBuilder();      
         Path streamDirPath = Paths.get(sourcePath);     
         tib.create(streamDirPath, indexPath);
