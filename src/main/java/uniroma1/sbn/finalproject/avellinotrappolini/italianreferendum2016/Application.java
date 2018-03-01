@@ -14,8 +14,11 @@ import org.apache.lucene.document.Document;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.DAO.CSVReader;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.PoliticiansIndexManager;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.TweetsIndexManager;
+import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.VoteIndexManager;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builder.PoliticiansIndexBuilder;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builder.TweetsIndexBuilder;
+import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builder.VoteIndexBuilder;
+import org.math.plot.*;
 
 /**
  *
@@ -24,33 +27,36 @@ import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builde
 public class Application {
     
     public static void main(String[] args) {
-//        //Nome, cognome, gruppo, voto, assenza
-//        int[] relevantColsSenators = {4, 3, 25, 23, 24};
-//        pCSVr.readCSV("senatori-votazione_5.csv", relevantColsSenators); 
         
         TweetsIndexManager tim = TweetsIndexManager.getInstance();
         PoliticiansIndexManager pim = PoliticiansIndexManager.getInstance();
         
-        pim.create();
-        pim.getAnalytics();
-//        try{
-//            ArrayList<Document> docs = tim.searchForName("matteo renzi");
-//            for(Document doc : docs){
-//                System.out.println(doc.get("screenName") +" "+ doc.get("followers"));
-//            }    
-//        } catch (IOException ex) {
-//            Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-
-        //Nome, cognome, gruppo, voto, assenza
-//        int[] relevantColsParl = {4, 3, 15, 18};
-//        int[] relevantColsSenators = {4, 3, 25, 23, 24};
-//        PoliticiansIndexBuilder pib = new PoliticiansIndexBuilder();
+        //pim.create();
+        int[] politicianSizes = pim.getAnalytics();
+        
+        System.out.println("YES POLITICIANS: " + politicianSizes[0]);
+        System.out.println( "NO POLITICIANS: " + politicianSizes[1]);
+        System.out.println("TOT POLITICIANS: " + (politicianSizes[0] + politicianSizes[1]));
+        
+        VoteIndexManager vim = VoteIndexManager.getInstance();
+        int[] TweetSizes = vim.getSizes();
+        
+        System.out.println("");
+        System.out.println("YES TWEETS: " + TweetSizes[0]);
+        System.out.println( "NO TWEETS: " + TweetSizes[1]);
+        System.out.println("TOT TWEETS: " + (TweetSizes[0] + TweetSizes[1]));    
+        
+        
 //        try {
-//            pib.create(",", "deputati_votazione_6.csv", "polititians", relevantColsParl);
-//            pib.create(",", "senatori-votazione_5.csv", "polititians", relevantColsParl);
+//            tim.getAllDocuments();
 //        } catch (IOException ex) {
 //            Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
 //        }
+        tim.getDistros();
+        
+        //vib.create("YesTweetsIndex", "si");
+        //vib.create("NoTweetsIndex", "no");
+        
+        
     }
 }

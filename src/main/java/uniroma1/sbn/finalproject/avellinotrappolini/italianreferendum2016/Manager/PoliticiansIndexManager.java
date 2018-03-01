@@ -46,7 +46,7 @@ public class PoliticiansIndexManager {
     }
     
     public static PoliticiansIndexManager getInstance(){
-      return instance;
+        return instance;
     }
     
     public void create() {
@@ -55,18 +55,20 @@ public class PoliticiansIndexManager {
         tib.create(sourcePath, indexPath, ",");
     }
     
-    public void getAnalytics() {
+    public int[] getAnalytics() {
         try{
             ArrayList<Document> yesResults = searchForVote("si");
             ArrayList<Document> noResults = searchForVote("no");
             
-            System.out.println("YES: " + yesResults.size());
-            System.out.println("NO: " + noResults.size());
-            System.out.println("TOT: " + (yesResults.size() + noResults.size()));
+            int[] results = {yesResults.size(), noResults.size()};
+            
+            return results;
             
         } catch (IOException ex) {
             System.out.println("Errore nell'apertura della cartella " + indexPath);
             ex.printStackTrace();
+            int[] results = {0,0};
+            return results;
         }
     }
     
