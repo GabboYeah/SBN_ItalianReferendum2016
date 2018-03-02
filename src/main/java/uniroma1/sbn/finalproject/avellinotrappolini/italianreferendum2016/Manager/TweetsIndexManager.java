@@ -32,6 +32,8 @@ public class TweetsIndexManager extends IndexManager {
 
     private String tweetsSourcePath;
     private String polsSourcePath;
+    private static long max = 1481036346994L;
+    private static long min = 1480170614348L;
 
     public TweetsIndexManager(String sourcePath, String indexPath) {
         super(sourcePath, indexPath);
@@ -71,40 +73,45 @@ public class TweetsIndexManager extends IndexManager {
         }
     }
 
-//    public int[] getTweetDistro(long stepSize) {
-//        int distroSize = ((max - min) / stepSize) + 1;
-//
-//        int[] distro = new int[distroSize];
-//
-//        int i;
-//
-//        Directory dir;
-//        try {
-//            dir = new SimpleFSDirectory(new File(indexPath));
-//            IndexReader ir = DirectoryReader.open(dir);
-//            IndexSearcher searcher = new IndexSearcher(ir);
-//            
-//            Query q;
-//
-//            for (i = 0; i < distroSize; i++) {
-//                long leftBound = min + i * stepSize;
-//                long rightBound = min + (i + 1) * stepSize;
-//                
-//                q = NumericRangeQuery.newLongRange("date", leftBound, rightBound, true, false);
-//                TopDocs top = searcher.search(q, 10000);
-//                distro[i] = top.totalHits;
-//                System.out.println(top.totalHits);
-//            }
-//            
-//            return distro;
-//            
-//        } catch (IOException ex) {
-//            System.out.println("---> Problems with source files: IOException <---");
-//            ex.printStackTrace();
-//        
-//            return null;
-//        }
-//    }
+    public ArrayList<long[]> getTweetDistro(long stepSize) {
+        int distroSize = (int) (((max - min) / stepSize) + 1);
+        
+        ArrayList<long[]> distro = new ArrayList<long []>();
+        long[] x = new long[distroSize];
+        long[] y = new long[distroSize];
+
+        int i;
+
+        Directory dir;
+        try {
+            dir = new SimpleFSDirectory(new File(indexPath));
+            IndexReader ir = DirectoryReader.open(dir);
+            IndexSearcher searcher = new IndexSearcher(ir);
+            
+            Query q;
+
+            for (i = 0; i < distroSize; i++) {
+                long leftBound = min + i * stepSize;
+                long rightBound = min + (i + 1) * stepSize;
+                
+                q = NumericRangeQuery.newLongRange("date", leftBound, rightBound, true, false);
+                TopDocs top = searcher.search(q, 10000);
+                x[i] = rightBound;
+                y[i] = top.totalHits;
+            }
+            
+            distro.add(x);
+            distro.add(y);
+            
+            return distro;
+            
+        } catch (IOException ex) {
+            System.out.println("---> Problems with source files: IOException <---");
+            ex.printStackTrace();
+        
+            return null;
+        }
+    }
     
 //        public void getDistros() {
 //

@@ -10,7 +10,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import javax.swing.JFrame;
 import org.apache.lucene.document.Document;
+import org.math.plot.Plot2DPanel;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.PoliticiansIndexManager;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.TweetsIndexManager;
 
@@ -47,27 +49,55 @@ public class Application {
             System.out.println("TOT POLITICIANS: " + (yesPoliticians.size() + noPoliticians.size()));
         }
 
-        TweetsIndexManager timYes = new TweetsIndexManager("index/AllTweetsIndex", "index/AllPoliticiansIndex", "index/AllYesTweetsIndex");
+        TweetsIndexManager yesTim = new TweetsIndexManager("index/AllTweetsIndex", "index/AllPoliticiansIndex", "index/AllYesTweetsIndex");
         dir = Paths.get("index/AllYesTweetsIndex");
         if (!Files.exists(dir)) {
-            timYes.create("vote", "si");
+            yesTim.create("vote", "si");
         } else {
             System.out.println(dir.toString() + ": Index already created!");
         }
 
-        TweetsIndexManager timNo = new TweetsIndexManager("index/AllTweetsIndex", "index/AllPoliticiansIndex", "index/AllNoTweetsIndex");
+        TweetsIndexManager noTim = new TweetsIndexManager("index/AllTweetsIndex", "index/AllPoliticiansIndex", "index/AllNoTweetsIndex");
         dir = Paths.get("index/AllNoTweetsIndex");
         if (!Files.exists(dir)) {
-            timNo.create("vote", "no");
+            noTim.create("vote", "no");
         } else {
             System.out.println(dir.toString() + ": Index already created!");
         }
 
-        int sizeYes = timYes.getIndexSizes();
-        int sizeNo = timNo.getIndexSizes();
+        int yesSize = yesTim.getIndexSizes();
+        int noSize = noTim.getIndexSizes();
         System.out.println("");
-        System.out.println("YES TWEETS: " + sizeYes);
-        System.out.println("NO TWEETS: " + sizeNo);
-        System.out.println("TOT TWEETS: " + (sizeYes + sizeNo));
+        System.out.println("YES TWEETS: " + yesSize);
+        System.out.println("NO TWEETS: " + noSize);
+        System.out.println("TOT TWEETS: " + (yesSize + noSize));
+
+        long stepSize = 86400000L;
+        ArrayList<long[]> yesDistro = yesTim.getTweetDistro(stepSize);
+        ArrayList<long[]> noDistro = noTim.getTweetDistro(stepSize);
+        
+        double[] x = new double[yesDistro.get(1).length];
+        double[] y = new double[yesDistro.get(1).length];
+        int i;
+        for(i = 0; i < yesDistro.get(1).length; i++){
+            x[i] = i+1;
+            y[i] = Math.log(yesDistro.get(1)[i]);
+        }
+        Plot2DPanel plot = new Plot2DPanel();
+
+        // add a line plot to the PlotPanel
+        plot.addLinePlot("my plot", x, y);
+        
+        for(i = 0; i < yesDistro.get(1).length; i++){
+            x[i] = i+1;
+            y[i] = Math.log(noDistro.get(1)[i]);
+        }
+        
+        plot.addLinePlot("my plot", x, y);
+        
+        // put the PlotPanel in a JFrame, as a JPanel
+        JFrame frame = new JFrame("a plot panel");
+        frame.setContentPane(plot);
+        frame.setVisible(true);
     }
 }
