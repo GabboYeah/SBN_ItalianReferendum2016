@@ -1,6 +1,9 @@
 stream/
 AllTweetsIndex/
 AllPoliticiansIndex/
+NoTweetsIndex/
+YesTweetsIndex/
+index
 si.txt
 no.txt
 deputati_votazione_6.csv
