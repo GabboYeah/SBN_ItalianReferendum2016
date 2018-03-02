@@ -158,8 +158,8 @@ public class TweetsIndexBuilder extends IndexBuilder {
 
     public void build(String fieldName, String fieldValue) throws IOException {
         setBuilderParams(indexPath);
-        PoliticiansIndexManager pim = new PoliticiansIndexManager("stream", tweetsSourcePath);;
-        TweetsIndexManager tim = new TweetsIndexManager("stream", polsSourcePath);;
+        PoliticiansIndexManager pim = new PoliticiansIndexManager("stream", polsSourcePath);;
+        TweetsIndexManager tim = new TweetsIndexManager("stream", tweetsSourcePath);;
 
         ArrayList<Document> politicians = pim.searchForField(fieldName, fieldValue, 10000);
 
@@ -168,8 +168,10 @@ public class TweetsIndexBuilder extends IndexBuilder {
         for (Document p : politicians) {
             //System.out.println("---------------------------");
             //System.out.println(p.get("name"));
+            
             politcianTweets = tim.searchForField("screenName", p.get("screenName"), 10000);
-
+            System.out.println(p.get("screenName") + " " + politcianTweets.size());
+            
             //System.out.println(politcianTweets.size());
             for (Document tweet : politcianTweets) {
                 this.userId.setLongValue(Long.parseLong(tweet.get("userId")));

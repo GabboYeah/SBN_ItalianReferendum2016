@@ -28,8 +28,8 @@ import org.apache.lucene.store.SimpleFSDirectory;
  */
 public abstract class IndexManager {
 
-    public String sourcePath = "politicians.csv";
-    public String indexPath = "AllPoliticiansIndex";
+    public String sourcePath;
+    public String indexPath;
 
     public IndexManager(String sourcePath, String indexPath) {
         this.sourcePath = sourcePath;
