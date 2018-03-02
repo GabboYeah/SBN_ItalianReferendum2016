@@ -71,40 +71,40 @@ public class TweetsIndexManager extends IndexManager {
         }
     }
 
-    public int[] getTweetDistro(long stepSize) {
-        int distroSize = ((max - min) / stepSize) + 1;
-
-        int[] distro = new int[distroSize];
-
-        int i;
-
-        Directory dir;
-        try {
-            dir = new SimpleFSDirectory(new File(indexPath));
-            IndexReader ir = DirectoryReader.open(dir);
-            IndexSearcher searcher = new IndexSearcher(ir);
-            
-            Query q;
-
-            for (i = 0; i < distroSize; i++) {
-                long leftBound = min + i * stepSize;
-                long rightBound = min + (i + 1) * stepSize;
-                
-                q = NumericRangeQuery.newLongRange("date", leftBound, rightBound, true, false);
-                TopDocs top = searcher.search(q, 10000);
-                distro[i] = top.totalHits;
-                System.out.println(top.totalHits);
-            }
-            
-            return distro;
-            
-        } catch (IOException ex) {
-            System.out.println("---> Problems with source files: IOException <---");
-            ex.printStackTrace();
-        
-            return null;
-        }
-    }
+//    public int[] getTweetDistro(long stepSize) {
+//        int distroSize = ((max - min) / stepSize) + 1;
+//
+//        int[] distro = new int[distroSize];
+//
+//        int i;
+//
+//        Directory dir;
+//        try {
+//            dir = new SimpleFSDirectory(new File(indexPath));
+//            IndexReader ir = DirectoryReader.open(dir);
+//            IndexSearcher searcher = new IndexSearcher(ir);
+//            
+//            Query q;
+//
+//            for (i = 0; i < distroSize; i++) {
+//                long leftBound = min + i * stepSize;
+//                long rightBound = min + (i + 1) * stepSize;
+//                
+//                q = NumericRangeQuery.newLongRange("date", leftBound, rightBound, true, false);
+//                TopDocs top = searcher.search(q, 10000);
+//                distro[i] = top.totalHits;
+//                System.out.println(top.totalHits);
+//            }
+//            
+//            return distro;
+//            
+//        } catch (IOException ex) {
+//            System.out.println("---> Problems with source files: IOException <---");
+//            ex.printStackTrace();
+//        
+//            return null;
+//        }
+//    }
     
 //        public void getDistros() {
 //

@@ -5,6 +5,10 @@
  */
 package uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import org.apache.lucene.document.Document;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.PoliticiansIndexManager;
@@ -18,8 +22,17 @@ public class Application {
     
     public static void main(String[] args) {
         
-        TweetsIndexManager tim = new TweetsIndexManager("stream", "index/AllTweetsIndex");
-        PoliticiansIndexManager pim = new PoliticiansIndexManager("stream", "index/AllPoliticiansIndex");
+        TweetsIndexManager tim = new TweetsIndexManager("input/stream", "index/AllTweetsIndex");
+        Path dir = Paths.get("index/AllTweetsIndex");
+        if(!Files.exists(dir)) {
+            tim.create();
+        }
+        
+        PoliticiansIndexManager pim = new PoliticiansIndexManager("input/politicians", "index/AllPoliticiansIndex");
+        dir = Paths.get("index/AllPoliticiansIndex");
+        if(!Files.exists(dir)){
+            pim.create();
+        }
         
         //pim.create();
         ArrayList<Document> yesPoliticians = pim.searchForField("vote", "si", 10000);
@@ -41,8 +54,6 @@ public class Application {
         System.out.println("");
         System.out.println("YES TWEETS: " + sizeYes);
         System.out.println( "NO TWEETS: " + sizeNo);
-        System.out.println("TOT TWEETS: " + (sizeYes + sizeNo));    
-        
-           
+        System.out.println("TOT TWEETS: " + (sizeYes + sizeNo));      
     }
 }
