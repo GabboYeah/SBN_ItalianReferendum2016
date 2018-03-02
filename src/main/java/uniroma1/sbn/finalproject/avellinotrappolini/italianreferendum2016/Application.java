@@ -4,21 +4,11 @@
  * and open the template in the editor.
  */
 package uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import org.apache.lucene.document.Document;
-import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.DAO.CSVReader;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.PoliticiansIndexManager;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.TweetsIndexManager;
-import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.VoteIndexManager;
-import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builder.PoliticiansIndexBuilder;
-import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builder.TweetsIndexBuilder;
-import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builder.VoteIndexBuilder;
-import org.math.plot.*;
 
 /**
  *
@@ -28,35 +18,31 @@ public class Application {
     
     public static void main(String[] args) {
         
-        TweetsIndexManager tim = TweetsIndexManager.getInstance();
-        PoliticiansIndexManager pim = PoliticiansIndexManager.getInstance();
+        TweetsIndexManager tim = new TweetsIndexManager("stream", "index/AllTweetsIndex");
+        PoliticiansIndexManager pim = new PoliticiansIndexManager("stream", "index/AllPoliticiansIndex");
         
         //pim.create();
-        int[] politicianSizes = pim.getAnalytics();
+        ArrayList<Document> yesPoliticians = pim.searchForField("vote", "si", 10000);
+        ArrayList<Document> noPoliticians = pim.searchForField("vote", "no", 10000);
         
-        System.out.println("YES POLITICIANS: " + politicianSizes[0]);
-        System.out.println( "NO POLITICIANS: " + politicianSizes[1]);
-        System.out.println("TOT POLITICIANS: " + (politicianSizes[0] + politicianSizes[1]));
+        if(yesPoliticians != null && noPoliticians != null){
+            System.out.println("YES POLITICIANS: " + yesPoliticians.size());
+            System.out.println( "NO POLITICIANS: " + noPoliticians.size());
+            System.out.println("TOT POLITICIANS: " + (yesPoliticians.size() + noPoliticians.size()));
+        }
         
-        VoteIndexManager vim = VoteIndexManager.getInstance();
-        int[] TweetSizes = vim.getSizes();
-        
+        TweetsIndexManager timYes = new TweetsIndexManager("index/AllTweetsIndex", "index/AllPolitcianssIndex", "index/AllYesTweetsIndex");
+        TweetsIndexManager timNo = new TweetsIndexManager("index/AllTweetsIndex", "index/AllPolitcianssIndex", "index/AllNoTweetsIndex");
+        timYes.create("vote", "si");
+        timNo.create("vote", "no");
+
+        int sizeYes = timYes.getIndexSizes();
+        int sizeNo = timNo.getIndexSizes();
         System.out.println("");
-        System.out.println("YES TWEETS: " + TweetSizes[0]);
-        System.out.println( "NO TWEETS: " + TweetSizes[1]);
-        System.out.println("TOT TWEETS: " + (TweetSizes[0] + TweetSizes[1]));    
+        System.out.println("YES TWEETS: " + sizeYes);
+        System.out.println( "NO TWEETS: " + sizeNo);
+        System.out.println("TOT TWEETS: " + (sizeYes + sizeNo));    
         
-        
-//        try {
-//            tim.getAllDocuments();
-//        } catch (IOException ex) {
-//            Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
-//        }
-        tim.getDistros();
-        
-        //vib.create("YesTweetsIndex", "si");
-        //vib.create("NoTweetsIndex", "no");
-        
-        
+           
     }
 }

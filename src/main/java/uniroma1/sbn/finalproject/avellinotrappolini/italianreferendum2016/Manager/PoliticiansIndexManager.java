@@ -5,91 +5,27 @@
  */
 package uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.index.DirectoryReader;
-import org.apache.lucene.index.IndexReader;
-import org.apache.lucene.index.Term;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TermQuery;
-import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.SimpleFSDirectory;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builder.PoliticiansIndexBuilder;
-import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builder.TweetsIndexBuilder;
 
 /**
  *
  * @author Gabriele
  */
-public class PoliticiansIndexManager {
-    private static PoliticiansIndexManager instance = new PoliticiansIndexManager();
-    
-    private static String sourcePath = "politicians.csv";
-    private static String indexPath = "AllPoliticiansIndex";
-    
-    
-    private PoliticiansIndexManager(){
-//        File dir = new File(indexPath);
-//	
-//        if(!dir.exists()){
-//            this.create();
-//        }
-    }
-    
-    public static PoliticiansIndexManager getInstance(){
-        return instance;
+public class PoliticiansIndexManager extends IndexManager{
+
+    public PoliticiansIndexManager(String sourcePath, String indexPath){
+        super(sourcePath, indexPath);
     }
     
     public void create() {
-        System.out.println("PoliticiansIndex Creation!");
-        PoliticiansIndexBuilder tib = new PoliticiansIndexBuilder();      
-        tib.create(sourcePath, indexPath, ",");
-    }
-    
-    public int[] getAnalytics() {
-        try{
-            ArrayList<Document> yesResults = searchForVote("si");
-            ArrayList<Document> noResults = searchForVote("no");
-            
-            int[] results = {yesResults.size(), noResults.size()};
-            
-            return results;
-            
+        System.out.println("Politicians Index Creation!");
+        PoliticiansIndexBuilder tib = new PoliticiansIndexBuilder(sourcePath, indexPath);      
+        try {
+            tib.build();
         } catch (IOException ex) {
-            System.out.println("Errore nell'apertura della cartella " + indexPath);
+            System.out.println("---> Problems with source files: IOException <---");
             ex.printStackTrace();
-            int[] results = {0,0};
-            return results;
         }
-    }
-    
-    public ArrayList<Document> searchForVote(String vote) throws IOException{
-        Directory dir = new SimpleFSDirectory(new File(indexPath));
-        IndexReader ir = DirectoryReader.open(dir);
-        IndexSearcher searcher = new IndexSearcher(ir);
-
-        Query q = new TermQuery(new Term("vote", vote));
-        TopDocs top = searcher.search(q, 900);
-        ScoreDoc[] hits = top.scoreDocs;
-
-        ArrayList<Document> results = new ArrayList<>();
-
-        Document doc = null;
-
-        for (ScoreDoc entry : hits) {
-            doc = searcher.doc(entry.doc);
-            results.add(doc);
-        }
-        
-        return results;
     }
 }
