@@ -6,15 +6,20 @@
 package uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JFrame;
 import org.apache.lucene.document.Document;
 import org.math.plot.Plot2DPanel;
+import twitter4j.TwitterException;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.PoliticiansIndexManager;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.TweetsIndexManager;
+import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builder.TermFreqIndexBuilder;
 
 /**
  *
@@ -72,32 +77,47 @@ public class Application {
         System.out.println("NO TWEETS: " + noSize);
         System.out.println("TOT TWEETS: " + (yesSize + noSize));
 
-        long stepSize = 86400000L;
-        ArrayList<long[]> yesDistro = yesTim.getTweetDistro(stepSize);
-        ArrayList<long[]> noDistro = noTim.getTweetDistro(stepSize);
+    
         
-        double[] x = new double[yesDistro.get(1).length];
-        double[] y = new double[yesDistro.get(1).length];
-        int i;
-        for(i = 0; i < yesDistro.get(1).length; i++){
-            x[i] = i+1;
-            y[i] = Math.log(yesDistro.get(1)[i]);
+// ---> FARE BENE STO CAZZO DI GRAFICO <---
+        
+        //long stepSize = 86400000L;
+//        long stepSize = 3600000L;
+//        ArrayList<long[]> yesDistro = yesTim.getTweetDistro(stepSize);
+//        ArrayList<long[]> noDistro = noTim.getTweetDistro(stepSize);
+//        
+//        double[] x = new double[yesDistro.get(1).length];
+//        double[] y = new double[yesDistro.get(1).length];
+//        int i;
+//        for(i = 0; i < yesDistro.get(1).length; i++){
+//            x[i] = i+1;
+//            y[i] = Math.log(1 + yesDistro.get(1)[i]);
+//        }
+//        Plot2DPanel plot = new Plot2DPanel();
+//
+//        // add a line plot to the PlotPanel
+//        plot.addLinePlot("Yes", x, y);
+//        plot.addLegend("SOUTH");
+//        
+//        for(i = 0; i < noDistro.get(1).length; i++){
+//            x[i] = i+1;
+//            y[i] = Math.log(1 + noDistro.get(1)[i]);
+//        }
+//        
+//        plot.addLinePlot("No", x, y);
+//        
+//        // put the PlotPanel in a JFrame, as a JPanel
+//        JFrame frame = new JFrame("a plot panel");
+//        frame.setContentPane(plot);
+//        frame.setVisible(true);
+        
+        TermFreqIndexBuilder tfib = new TermFreqIndexBuilder(43200000L, "index/AllYesTweetsIndex");
+        try {
+            tfib.build();
+        } catch (IOException ex) {
+            Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (TwitterException ex) {
+            Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
         }
-        Plot2DPanel plot = new Plot2DPanel();
-
-        // add a line plot to the PlotPanel
-        plot.addLinePlot("my plot", x, y);
-        
-        for(i = 0; i < yesDistro.get(1).length; i++){
-            x[i] = i+1;
-            y[i] = Math.log(noDistro.get(1)[i]);
-        }
-        
-        plot.addLinePlot("my plot", x, y);
-        
-        // put the PlotPanel in a JFrame, as a JPanel
-        JFrame frame = new JFrame("a plot panel");
-        frame.setContentPane(plot);
-        frame.setVisible(true);
     }
 }

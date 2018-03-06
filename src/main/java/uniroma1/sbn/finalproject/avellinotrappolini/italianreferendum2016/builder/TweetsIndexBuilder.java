@@ -138,7 +138,15 @@ public class TweetsIndexBuilder extends IndexBuilder {
                     this.date.setLongValue(sw.getTime());
                     this.name.setStringValue(sw.getStatus().getUser().getName().toLowerCase());
                     this.screenName.setStringValue(sw.getStatus().getUser().getScreenName());
-                    this.tweetText.setStringValue(sw.getStatus().getText());
+                    //System.out.println("--------");
+                    //System.out.println(sw.getStatus().getText());
+                    String cleanedText = sw.getStatus().getText().replace("RT ","");
+                    cleanedText = cleanedText.replaceAll("https:\\/\\/\\S*","");
+                    cleanedText = cleanedText.replaceAll("@\\S*","");
+                    cleanedText = cleanedText.replaceAll("#\\S*","");
+                    //System.out.println(cleanedText);
+                    //System.out.println("--------");
+                    this.tweetText.setStringValue(cleanedText);
                     this.followers.setLongValue((long) sw.getStatus().getUser().getFollowersCount());
                     String hashtags = "";
                     for (HashtagEntity hashtag : sw.getStatus().getHashtagEntities()) {
