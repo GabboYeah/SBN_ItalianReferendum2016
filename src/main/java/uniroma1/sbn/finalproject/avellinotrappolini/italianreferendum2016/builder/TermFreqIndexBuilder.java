@@ -18,7 +18,6 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.MultiFields;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
-import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
@@ -37,9 +36,11 @@ import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manage
  */
 public class TermFreqIndexBuilder {
 
-    private HashMap<String, int[]> termFreqindex;
+    private HashMap<String, float[]> termFreqIndex;
     private long stepSize;
     private String indexPath;
+    private static long max = 1481036346994L;
+    private static long min = 1480170614348L;
 
     public TermFreqIndexBuilder(long stepSize, String indexPath) {
         this.stepSize = stepSize;
@@ -53,36 +54,67 @@ public class TermFreqIndexBuilder {
             IndexSearcher searcher = new IndexSearcher(ir);
 
             Fields fields = MultiFields.getFields(ir);
-            Terms terms = fields.terms("tweetText");
-            System.out.println();
-            TermsEnum termsEnum = terms.iterator(null);
+            String[] relevantFields = {"tweetText", "hashtags"};
+            
+            int arraySize = (int) (((max - min) / stepSize) + 1);
+            termFreqIndex = new HashMap<String, float[]>();
+            float[] initialArray = new float[arraySize];
+            
+            int i;
+            
+            for (i = 0; i < arraySize; i++) {
+                initialArray[i] = 0;
+            }
+            
+            for (String rel : relevantFields) {
+                Terms terms = fields.terms(rel);
+                
+                TermsEnum termsEnum = terms.iterator(null);
 
-            while (termsEnum.next() != null) {
-                BytesRef byteRef = termsEnum.term();
+                while (termsEnum.next() != null) {
+                    BytesRef byteRef = termsEnum.term();
 
-                System.out.println("-------------> " + new String(byteRef.bytes, byteRef.offset, byteRef.length));
-                String word = new String(byteRef.bytes, byteRef.offset, byteRef.length);
+                    System.out.println("-------------> " + new String(byteRef.bytes, byteRef.offset, byteRef.length));
+                    String word = new String(byteRef.bytes, byteRef.offset, byteRef.length);
+                    
+                    
+                    float[] wordValues = initialArray.clone();
+                    
+                    Analyzer stdAn = new StandardAnalyzer(Version.LUCENE_41);
+                    QueryParser parser = new QueryParser(Version.LUCENE_41, "tweetText", stdAn);
+                    Query q;
+                    try {
+                        q = parser.parse(word);
 
-                Analyzer stdAn = new StandardAnalyzer(Version.LUCENE_41);
-                QueryParser parser = new QueryParser(Version.LUCENE_41, "tweetText", stdAn);
-                Query q;
-                try {
-                    q = parser.parse(word);
-
-                    TopDocs hits = searcher.search(q, 1000000);
-                    ScoreDoc[] scoreDocs = hits.scoreDocs;
-                    System.out.println(scoreDocs.length);
-                    for(ScoreDoc sd : scoreDocs){
-                        System.out.println(ir.document(sd.doc).get("tweetText"));
+                        TopDocs hits = searcher.search(q, 1000000);
+                        ScoreDoc[] scoreDocs = hits.scoreDocs;
+                        System.out.println(scoreDocs.length);
+                        for (ScoreDoc sd : scoreDocs) {
+                            System.out.println(ir.document(sd.doc).get("tweetText") + " " + ir.document(sd.doc).get("date"));
+                            i = 1;
+                            while (Long.parseLong(ir.document(sd.doc).get("date")) > (i+1)*stepSize + min) {
+                                System.out.println(i + " " + ir.document(sd.doc).get("date") + " " + ((i+1)*stepSize + min));
+                                i++;
+                            }
+                            wordValues[i]++;
+                        }
+                        termFreqIndex.put(word, wordValues);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
                     }
-                } catch(Exception ex){
-                    ex.printStackTrace();
                 }
             }
-
+            
+            for(String key : termFreqIndex.keySet()){
+                System.out.println(key);
+                System.out.println();
+                
+                for(float value : termFreqIndex.get(key)){
+                    System.out.print(value + " ");
+                }
+            }
         } catch (IOException ex) {
             Logger.getLogger(TweetsIndexManager.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
 }

@@ -109,7 +109,7 @@ public class Application {
 //        // put the PlotPanel in a JFrame, as a JPanel
 //        JFrame frame = new JFrame("a plot panel");
 //        frame.setContentPane(plot);
-//        frame.setVisible(true);
+//        frame.setVisible(true);      
         
         TermFreqIndexBuilder tfib = new TermFreqIndexBuilder(43200000L, "index/AllYesTweetsIndex");
         try {
