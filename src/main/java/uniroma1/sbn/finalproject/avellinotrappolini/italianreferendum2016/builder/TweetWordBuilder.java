@@ -33,7 +33,7 @@ public class TweetWordBuilder {
     public TweetWord build(String word, double[] timeSeries, int frequency) throws SAXException {
         SAXRecords res = sp.ts2saxByChunking(timeSeries, timeSeries.length, na.getCuts(alphabetSize), nThreshold);
         String sax = res.getSAXString("");
-        System.out.println(word + ", " + frequency + ", " + sax + ", " + Arrays.toString(timeSeries));
+        //System.out.println(word + ", " + frequency + ", " + sax + ", " + Arrays.toString(timeSeries));
         return new TweetWord(word, frequency, sax, timeSeries);
     }
 }

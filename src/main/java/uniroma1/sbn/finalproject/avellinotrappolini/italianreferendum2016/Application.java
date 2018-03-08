@@ -135,6 +135,10 @@ public class Application {
                 System.out.println(tw.getWord());
             }
             
+            for(TweetWord tw : noList){
+                System.out.println(tw.getWord());
+            }
+            
             System.out.println("YES-RELWORDS: " + yesList.size() + ", NO-RELWORDS: " + noList.size());
         } catch (IOException ex) {
             ex.printStackTrace();

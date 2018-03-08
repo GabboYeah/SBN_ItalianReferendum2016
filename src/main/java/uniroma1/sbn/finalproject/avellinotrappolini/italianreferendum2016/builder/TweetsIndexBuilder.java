@@ -140,12 +140,22 @@ public class TweetsIndexBuilder extends IndexBuilder {
                     this.screenName.setStringValue(sw.getStatus().getUser().getScreenName());
                     //System.out.println("--------");
                     //System.out.println(sw.getStatus().getText());
-                    String cleanedText = sw.getStatus().getText().replace("RT "," ");
-                    cleanedText = cleanedText.replaceAll("http\\/\\/\\S*"," ");
-                    cleanedText = cleanedText.replaceAll("http\\/\\/\\S*$"," ");
-                    cleanedText = cleanedText.replaceAll("[^(\\w|\\d|\\s)]"," ");
-                    cleanedText = cleanedText.replaceAll("@\\S*","");
-                    cleanedText = cleanedText.replaceAll("#\\S*","");
+
+//                    String cleanedText = sw.getStatus().getText().replace("RT ", "");
+//                    cleanedText = cleanedText.replaceAll("https:\\/\\/\\S*", "");
+//                    cleanedText = cleanedText.replaceAll("https:\\/\\/\\S*$", "");
+//                    cleanedText = cleanedText.replaceAll("http:\\/\\/\\S*", "");
+//                    cleanedText = cleanedText.replaceAll("http:\\/\\/\\S*$", "");
+//                    cleanedText = cleanedText.replaceAll("[^(\\w|\\d|\\s)]", "");
+//                    cleanedText = cleanedText.replaceAll("@\\S*", "");
+//                    cleanedText = cleanedText.replaceAll("#\\S*", "");
+
+                    String cleanedText = sw.getStatus().getText().replace("RT ", " ");
+                    cleanedText = cleanedText.replaceAll("http\\/\\/\\S*", " ");
+                    cleanedText = cleanedText.replaceAll("http\\/\\/\\S*$", " ");
+                    cleanedText = cleanedText.replaceAll("[^(\\w|\\d|\\s)]", " ");
+                    cleanedText = cleanedText.replaceAll("@\\S*", "");
+                    cleanedText = cleanedText.replaceAll("#\\S*", "");
                     //System.out.println(cleanedText);
                     //System.out.println("--------");
                     this.tweetText.setStringValue(cleanedText);
@@ -178,10 +188,10 @@ public class TweetsIndexBuilder extends IndexBuilder {
         for (Document p : politicians) {
             //System.out.println("---------------------------");
             //System.out.println(p.get("name"));
-            
+
             politcianTweets = tim.searchForField("screenName", p.get("screenName"), 10000);
             System.out.println(p.get("screenName") + " " + politcianTweets.size());
-            
+
             //System.out.println(politcianTweets.size());
             for (Document tweet : politcianTweets) {
                 this.userId.setLongValue(Long.parseLong(tweet.get("userId")));

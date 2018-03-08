@@ -86,8 +86,8 @@ public class TermFreqIndexBuilder {
                 BytesRef byteRef = termsEnum.term();
                 word = new String(byteRef.bytes, byteRef.offset, byteRef.length);
                 word = word.replaceAll("[^(\\w|\\d|\\s)]", "");
-                System.out.println("-------------> " + word);
-                System.out.println("freq: " + freq);
+                //System.out.println("-------------> " + word);
+                //System.out.println("freq: " + freq);
 
                 double[] wordValues = initialArray.clone();
 
@@ -104,7 +104,7 @@ public class TermFreqIndexBuilder {
                     wordValues[i]++;
                 }
                 TweetWord tw = twb.build(word, wordValues, (int) freq);
-                System.out.println(tw.getSaxRep().matches("a+b+a*b*a*"));
+                //System.out.println(tw.getSaxRep().matches("a+b+a*b*a*"));
                 if (tw.getSaxRep().matches("a+b+a*b*a*")) {
                     relWords.add(tw);
                 }
