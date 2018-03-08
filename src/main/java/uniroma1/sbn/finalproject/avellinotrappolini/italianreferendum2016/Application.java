@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JFrame;
@@ -111,9 +112,15 @@ public class Application {
 //        frame.setContentPane(plot);
 //        frame.setVisible(true);      
         
-        TermFreqIndexBuilder tfib = new TermFreqIndexBuilder(43200000L, "index/AllYesTweetsIndex");
+        TermFreqIndexBuilder yesTfib = new TermFreqIndexBuilder(43200000L, "index/AllYesTweetsIndex");
+        TermFreqIndexBuilder noTfib = new TermFreqIndexBuilder(43200000L, "index/AllNoTweetsIndex");
+        
+        HashMap <String, double[]> yesMap;
+        HashMap <String, double[]> noMap;
+        
         try {
-            tfib.build();
+            yesMap = yesTfib.build("index/YesWords.json");
+            noMap = noTfib.build("index/NoWords.json");
         } catch (IOException ex) {
             Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
         } catch (TwitterException ex) {

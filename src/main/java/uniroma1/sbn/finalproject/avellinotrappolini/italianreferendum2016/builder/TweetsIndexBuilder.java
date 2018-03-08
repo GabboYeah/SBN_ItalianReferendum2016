@@ -46,7 +46,7 @@ public class TweetsIndexBuilder extends IndexBuilder {
     //Tweet text
     private TextField tweetText;
     //
-    private StringField hashtags;
+    private TextField hashtags;
     //
     private LongField followers;
 
@@ -60,7 +60,7 @@ public class TweetsIndexBuilder extends IndexBuilder {
         this.name = new StringField("name", "", Field.Store.YES);
         this.screenName = new StringField("screenName", "", Field.Store.YES);
         this.tweetText = new TextField("tweetText", "", Field.Store.YES);
-        this.hashtags = new StringField("hashtags", "", Field.Store.YES);
+        this.hashtags = new TextField("hashtags", "", Field.Store.YES);
         this.followers = new LongField("followers", 0L, Field.Store.YES);
 
         this.tweet.add(this.userId);
@@ -82,7 +82,7 @@ public class TweetsIndexBuilder extends IndexBuilder {
         this.name = new StringField("name", "", Field.Store.YES);
         this.screenName = new StringField("screenName", "", Field.Store.YES);
         this.tweetText = new TextField("tweetText", "", Field.Store.YES);
-        this.hashtags = new StringField("hashtags", "", Field.Store.YES);
+        this.hashtags = new TextField("hashtags", "", Field.Store.YES);
         this.followers = new LongField("followers", 0L, Field.Store.YES);
 
         this.tweet.add(this.userId);
@@ -142,6 +142,7 @@ public class TweetsIndexBuilder extends IndexBuilder {
                     //System.out.println(sw.getStatus().getText());
                     String cleanedText = sw.getStatus().getText().replace("RT ","");
                     cleanedText = cleanedText.replaceAll("https:\\/\\/\\S*","");
+                    cleanedText = cleanedText.replaceAll("https:\\/\\/\\S*$","");
                     cleanedText = cleanedText.replaceAll("@\\S*","");
                     cleanedText = cleanedText.replaceAll("#\\S*","");
                     //System.out.println(cleanedText);

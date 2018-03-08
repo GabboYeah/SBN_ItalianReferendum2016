@@ -1,12 +1,4 @@
-stream/
-AllTweetsIndex/
-AllPoliticiansIndex/
-NoTweetsIndex/
-YesTweetsIndex/
-index
+input/
+index/
 si.txt
 no.txt
-deputati_votazione_6.csv
-senatori-votazione_5.csv
-senato.csv
-parlamento.csv
