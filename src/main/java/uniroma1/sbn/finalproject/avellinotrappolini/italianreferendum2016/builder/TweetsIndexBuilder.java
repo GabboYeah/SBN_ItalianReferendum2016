@@ -140,9 +140,10 @@ public class TweetsIndexBuilder extends IndexBuilder {
                     this.screenName.setStringValue(sw.getStatus().getUser().getScreenName());
                     //System.out.println("--------");
                     //System.out.println(sw.getStatus().getText());
-                    String cleanedText = sw.getStatus().getText().replace("RT ","");
-                    cleanedText = cleanedText.replaceAll("https:\\/\\/\\S*","");
-                    cleanedText = cleanedText.replaceAll("https:\\/\\/\\S*$","");
+                    String cleanedText = sw.getStatus().getText().replace("RT "," ");
+                    cleanedText = cleanedText.replaceAll("http\\/\\/\\S*"," ");
+                    cleanedText = cleanedText.replaceAll("http\\/\\/\\S*$"," ");
+                    cleanedText = cleanedText.replaceAll("[^(\\w|\\d|\\s)]"," ");
                     cleanedText = cleanedText.replaceAll("@\\S*","");
                     cleanedText = cleanedText.replaceAll("#\\S*","");
                     //System.out.println(cleanedText);

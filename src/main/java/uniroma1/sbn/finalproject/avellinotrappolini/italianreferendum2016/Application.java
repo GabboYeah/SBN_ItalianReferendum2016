@@ -5,19 +5,32 @@
  */
 package uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 import javax.swing.JFrame;
+import net.seninp.jmotif.sax.SAXException;
+import net.seninp.jmotif.sax.SAXProcessor;
+import net.seninp.jmotif.sax.alphabet.NormalAlphabet;
+import net.seninp.jmotif.sax.datastructure.SAXRecords;
 import org.apache.lucene.document.Document;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.math.plot.Plot2DPanel;
 import twitter4j.TwitterException;
+import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities.TweetWord;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.PoliticiansIndexManager;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.TweetsIndexManager;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builder.TermFreqIndexBuilder;
@@ -78,10 +91,7 @@ public class Application {
         System.out.println("NO TWEETS: " + noSize);
         System.out.println("TOT TWEETS: " + (yesSize + noSize));
 
-    
-        
 // ---> FARE BENE STO CAZZO DI GRAFICO <---
-        
         //long stepSize = 86400000L;
 //        long stepSize = 3600000L;
 //        ArrayList<long[]> yesDistro = yesTim.getTweetDistro(stepSize);
@@ -111,20 +121,33 @@ public class Application {
 //        JFrame frame = new JFrame("a plot panel");
 //        frame.setContentPane(plot);
 //        frame.setVisible(true);      
-        
         TermFreqIndexBuilder yesTfib = new TermFreqIndexBuilder(43200000L, "index/AllYesTweetsIndex");
         TermFreqIndexBuilder noTfib = new TermFreqIndexBuilder(43200000L, "index/AllNoTweetsIndex");
-        
-        HashMap <String, double[]> yesMap;
-        HashMap <String, double[]> noMap;
-        
+
+        ArrayList<TweetWord> yesList;
+        ArrayList<TweetWord> noList;
+
         try {
-            yesMap = yesTfib.build("index/YesWords.json");
-            noMap = noTfib.build("index/NoWords.json");
+            yesList = yesTfib.build();
+            noList = noTfib.build();
+            
+            for(TweetWord tw : yesList){
+                System.out.println(tw.getWord());
+            }
+            
+            System.out.println("YES-RELWORDS: " + yesList.size() + ", NO-RELWORDS: " + noList.size());
         } catch (IOException ex) {
-            Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
+            System.out.println("ERROR WITH RELEVANT TWEETS");
         } catch (TwitterException ex) {
-            Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
+            System.out.println("ERROR WITH RELEVANT TWEETS");
+        } catch (ParseException ex) {
+            ex.printStackTrace();
+            System.out.println("ERROR WITH RELEVANT TWEETS");
+        } catch (SAXException ex) {
+            ex.printStackTrace();
+            System.out.println("ERROR WITH RELEVANT TWEETS");
         }
     }
 }

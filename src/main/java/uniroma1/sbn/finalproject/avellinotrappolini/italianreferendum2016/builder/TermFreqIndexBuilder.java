@@ -8,10 +8,15 @@ package uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.build
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import jdk.nashorn.api.scripting.JSObject;
+import net.seninp.jmotif.sax.SAXException;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.index.DirectoryReader;
@@ -20,6 +25,7 @@ import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.MultiFields;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
+import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
@@ -30,6 +36,7 @@ import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.Version;
 import twitter4j.TwitterException;
+import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities.TweetWord;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.TweetsIndexManager;
 
 /**
@@ -38,7 +45,7 @@ import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manage
  */
 public class TermFreqIndexBuilder {
 
-    private HashMap<String, double[]> termFreqIndex;
+    private ArrayList<TweetWord> relWords;
     private long stepSize;
     private String indexPath;
     private static long max = 1481036346994L;
@@ -47,80 +54,67 @@ public class TermFreqIndexBuilder {
     public TermFreqIndexBuilder(long stepSize, String indexPath) {
         this.stepSize = stepSize;
         this.indexPath = indexPath;
+        this.relWords = new ArrayList<TweetWord>();
     }
 
-    public HashMap<String, double[]> build(String jsonPath) throws IOException, TwitterException {
-        try {
-            Directory dir = new SimpleFSDirectory(new File(indexPath));
-            IndexReader ir = DirectoryReader.open(dir);
-            IndexSearcher searcher = new IndexSearcher(ir);
+    public ArrayList<TweetWord> build() throws IOException, TwitterException, ParseException, SAXException {
+        Directory dir = new SimpleFSDirectory(new File(indexPath));
+        IndexReader ir = DirectoryReader.open(dir);
+        IndexSearcher searcher = new IndexSearcher(ir);
 
-            Fields fields = MultiFields.getFields(ir);
-            String[] relevantFields = {"tweetText", "hashtags"};
+        Fields fields = MultiFields.getFields(ir);
+        String[] relevantFields = {"tweetText", "hashtags"};
 
-            int arraySize = (int) (((max - min) / stepSize) + 1);
-            termFreqIndex = new HashMap<String, double[]>();
-            double[] initialArray = new double[arraySize];
+        int arraySize = (int) (((max - min) / stepSize) + 1);
 
+        double[] initialArray = new double[arraySize];
+
+        for (String rel : relevantFields) {
+            Terms terms = fields.terms(rel);
+
+            TermsEnum termsEnum = terms.iterator(null);
+
+            long freq;
+            String word;
             int i;
 
-            for (i = 0; i < arraySize; i++) {
-                initialArray[i] = 0;
-            }
+            TweetWordBuilder twb = new TweetWordBuilder(2, 0.01);
 
-            for (String rel : relevantFields) {
-                Terms terms = fields.terms(rel);
+            while (termsEnum.next() != null) {
+                freq = termsEnum.totalTermFreq();
 
-                System.out.println("number of words: " + terms.size());
+                BytesRef byteRef = termsEnum.term();
+                word = new String(byteRef.bytes, byteRef.offset, byteRef.length);
+                word = word.replaceAll("[^(\\w|\\d|\\s)]", "");
+                System.out.println("-------------> " + word);
+                System.out.println("freq: " + freq);
 
-                TermsEnum termsEnum = terms.iterator(null);
+                double[] wordValues = initialArray.clone();
 
-                while (termsEnum.next() != null) {
-                    BytesRef byteRef = termsEnum.term();
+                Analyzer stdAn = new StandardAnalyzer(Version.LUCENE_41);
+                QueryParser parser = new QueryParser(Version.LUCENE_41, rel, stdAn);
+                Query q;
+                q = parser.parse(word);
 
-                    System.out.println("-------------> " + new String(byteRef.bytes, byteRef.offset, byteRef.length));
-                    String word = new String(byteRef.bytes, byteRef.offset, byteRef.length);
-
-                    double[] wordValues = initialArray.clone();
-
-                    Analyzer stdAn = new StandardAnalyzer(Version.LUCENE_41);
-                    QueryParser parser = new QueryParser(Version.LUCENE_41, rel, stdAn);
-                    Query q;
-                    try {
-                        q = parser.parse(word);
-
-                        TopDocs hits = searcher.search(q, 1000000);
-                        ScoreDoc[] scoreDocs = hits.scoreDocs;
-                        System.out.println(scoreDocs.length);
-                        for (ScoreDoc sd : scoreDocs) {
-                            i = (int) ((Long.parseLong(ir.document(sd.doc).get("date")) - min) / stepSize);
-                            wordValues[i]++;
-                        }
-                        termFreqIndex.put(word, wordValues);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                    }
+                TopDocs hits = searcher.search(q, 1000000);
+                ScoreDoc[] scoreDocs = hits.scoreDocs;
+                
+                for (ScoreDoc sd : scoreDocs) {
+                    i = (int) ((Long.parseLong(ir.document(sd.doc).get("date")) - min) / stepSize);
+                    wordValues[i]++;
+                }
+                TweetWord tw = twb.build(word, wordValues, (int) freq);
+                System.out.println(tw.getSaxRep().matches("a+b+a*b*a*"));
+                if (tw.getSaxRep().matches("a+b+a*b*a*")) {
+                    relWords.add(tw);
                 }
             }
-
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.writeValue(new File(jsonPath), termFreqIndex);
-
-            for (String key : termFreqIndex.keySet()) {
-                System.out.println();
-                System.out.println(key);
-
-                for (double value : termFreqIndex.get(key)) {
-                    System.out.print(value + " ");
-                }
-
-                System.out.println();
-            }
-
-            return termFreqIndex;
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            return null;
         }
+
+        Collections.sort(relWords);
+
+        return (ArrayList) relWords.stream().limit(1000).collect(Collectors.toList());
+
+        
     }
 }
