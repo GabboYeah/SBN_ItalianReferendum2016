@@ -23,6 +23,11 @@ public class TweetWord implements Comparable<TweetWord>{
         this.timeSeries = timeSeries;
         toBinary();
     }
+    
+    public int getSize() {
+        
+        return this.timeSeries.length;
+    }
 
     public String getWord() {
         return word;
