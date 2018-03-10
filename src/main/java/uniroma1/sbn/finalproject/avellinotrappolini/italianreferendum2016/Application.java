@@ -30,6 +30,7 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.math.plot.Plot2DPanel;
 import twitter4j.TwitterException;
+import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.AnalyticalTools.Kmeans;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities.TweetWord;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.PoliticiansIndexManager;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.TweetsIndexManager;
@@ -131,16 +132,31 @@ public class Application {
             yesList = yesTfib.build();
             noList = noTfib.build();
             
-            //prova
-            for(TweetWord tw : yesList){
-                System.out.println(tw.getWord());
+//            System.out.println("YES WORDS:");
+//            for(TweetWord tw : yesList){
+//                System.out.println(tw.getWord());
+//            }
+//            
+//            System.out.println("NO WORDS:");
+//            for(TweetWord tw : noList){
+//                System.out.println(tw.getWord());
+//            }
+            
+//            System.out.println("---> YES-RELWORDS: " + yesList.size() + ", NO-RELWORDS: " + noList.size());
+            
+            int[] membership = Kmeans.computeKmeans(yesList, 10, 1000);
+            
+            for(int i = 0; i < 10; i++){
+                System.out.println("+Cluster N°" + (i+1) + ":");
+                int k = 1;
+                for(int j = 0; j < membership.length; j++){
+                    if(membership[j] == i){
+                        k++;
+                    }
+                }
+                System.out.println("+-+ Nmuber of elements: " + k + "\n");
             }
             
-            for(TweetWord tw : noList){
-                System.out.println(tw.getWord());
-            }
-            
-            System.out.println("YES-RELWORDS: " + yesList.size() + ", NO-RELWORDS: " + noList.size());
         } catch (IOException ex) {
             ex.printStackTrace();
             System.out.println("ERROR WITH RELEVANT TWEETS");

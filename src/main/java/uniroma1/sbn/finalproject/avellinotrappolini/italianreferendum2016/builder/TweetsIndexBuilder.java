@@ -155,7 +155,6 @@ public class TweetsIndexBuilder extends IndexBuilder {
                     cleanedText = cleanedText.replaceAll("http\\/\\/\\S*$", " ");
                     cleanedText = cleanedText.replaceAll("[^(\\w|\\d|\\s)]", " ");
                     cleanedText = cleanedText.replaceAll("@\\S*", "");
-                    cleanedText = cleanedText.replaceAll("#\\S*", "");
                     //System.out.println(cleanedText);
                     //System.out.println("--------");
                     this.tweetText.setStringValue(cleanedText);

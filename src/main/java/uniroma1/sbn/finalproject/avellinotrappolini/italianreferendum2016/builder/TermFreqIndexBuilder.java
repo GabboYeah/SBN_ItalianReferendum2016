@@ -63,7 +63,7 @@ public class TermFreqIndexBuilder {
         IndexSearcher searcher = new IndexSearcher(ir);
 
         Fields fields = MultiFields.getFields(ir);
-        String[] relevantFields = {"tweetText", "hashtags"};
+        String[] relevantFields = {"tweetText"};
 
         int arraySize = (int) (((max - min) / stepSize) + 1);
 
