@@ -131,6 +131,7 @@ public class Application {
             yesList = yesTfib.build();
             noList = noTfib.build();
             
+            //prova
             for(TweetWord tw : yesList){
                 System.out.println(tw.getWord());
             }

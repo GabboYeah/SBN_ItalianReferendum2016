@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.analyticaltools;
+package uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.AnalyticalTools;
 
 import java.util.ArrayList;
 import java.util.Random;
