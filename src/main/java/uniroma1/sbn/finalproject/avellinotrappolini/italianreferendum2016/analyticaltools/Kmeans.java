@@ -16,7 +16,7 @@ import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entiti
  */
 public class Kmeans {
 
-    public static int ComputeKmeans(ArrayList<TweetWord> wordsInfo, int k, int maxIt) {
+    public static int[] ComputeKmeans(ArrayList<TweetWord> wordsInfo, int k, int maxIt) {
         if (k < 2) {
             throw new IllegalArgumentException("Invalid number of Clusters: " + k);
         }
@@ -30,7 +30,7 @@ public class Kmeans {
 
         double[][] data = getData(wordsInfo);
         double[][] centroids = initializeCentroids(data, k, m);
-        int[] memberships;
+        int[] memberships = new int[n];
 
         int i = 0;
         double diff = 1; // poi rimuovilo, lo tengo ora cosi non rompe la palle
@@ -41,10 +41,13 @@ public class Kmeans {
             
             diff = computeMagnitudeUpdate(newCentroids, centroids);
             centroids = newCentroids.clone();
+            
+            i++;
 
         }
+        
 
-        return n;
+        return memberships;
 
     }
     
