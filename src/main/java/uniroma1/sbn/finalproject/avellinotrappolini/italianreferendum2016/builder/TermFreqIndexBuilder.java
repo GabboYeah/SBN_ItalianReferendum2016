@@ -19,6 +19,7 @@ import jdk.nashorn.api.scripting.JSObject;
 import net.seninp.jmotif.sax.SAXException;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.Fields;
 import org.apache.lucene.index.IndexReader;
@@ -46,6 +47,7 @@ import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manage
 public class TermFreqIndexBuilder {
 
     private ArrayList<TweetWord> relWords;
+    private HashMap<String, ArrayList> invertedIndex;
     private long stepSize;
     private String indexPath;
     private static long max = 1481036346994L;
@@ -55,9 +57,10 @@ public class TermFreqIndexBuilder {
         this.stepSize = stepSize;
         this.indexPath = indexPath;
         this.relWords = new ArrayList<TweetWord>();
+        this.invertedIndex = new HashMap<String, ArrayList>();
     }
 
-    public ArrayList<TweetWord> build() throws IOException, TwitterException, ParseException, SAXException {
+    public void build() throws IOException, TwitterException, ParseException, SAXException {
         Directory dir = new SimpleFSDirectory(new File(indexPath));
         IndexReader ir = DirectoryReader.open(dir);
         IndexSearcher searcher = new IndexSearcher(ir);
@@ -98,23 +101,37 @@ public class TermFreqIndexBuilder {
 
                 TopDocs hits = searcher.search(q, 1000000);
                 ScoreDoc[] scoreDocs = hits.scoreDocs;
+    
+                ArrayList<Integer> invertedList = new ArrayList<Integer>();
                 
                 for (ScoreDoc sd : scoreDocs) {
                     i = (int) ((Long.parseLong(ir.document(sd.doc).get("date")) - min) / stepSize);
+                    invertedList.add(sd.doc);
                     wordValues[i]++;
                 }
                 TweetWord tw = twb.build(word, wordValues, (int) freq);
                 //System.out.println(tw.getSaxRep().matches("a+b+a*b*a*"));
                 if (tw.getSaxRep().matches("a+b+a*b*a*")) {
                     relWords.add(tw);
+                    invertedIndex.put(word, invertedList);
                 }
             }
         }
 
         Collections.sort(relWords);
 
-        return (ArrayList) relWords.stream().limit(1000).collect(Collectors.toList());
+        relWords = (ArrayList) relWords.stream().limit(1000).collect(Collectors.toList());
 
         
     }
+
+    public ArrayList<TweetWord> getRelWords() {
+        return relWords;
+    }
+
+    public HashMap<String, ArrayList> getInvertedIndex() {
+        return invertedIndex;
+    }
+    
+    
 }

@@ -129,8 +129,12 @@ public class Application {
         ArrayList<TweetWord> noList;
 
         try {
-            yesList = yesTfib.build();
-            noList = noTfib.build();
+            yesTfib.build();
+            noTfib.build();
+            yesList = yesTfib.getRelWords();
+            noList = noTfib.getRelWords();
+            
+            System.out.println(yesTfib.getInvertedIndex().get("calci"));
             
 //            System.out.println("YES WORDS:");
 //            for(TweetWord tw : yesList){
