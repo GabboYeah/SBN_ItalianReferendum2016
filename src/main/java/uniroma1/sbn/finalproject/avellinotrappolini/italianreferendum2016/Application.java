@@ -134,12 +134,12 @@ public class Application {
             yesList = yesTfib.getRelWords();
             noList = noTfib.getRelWords();
             
-            System.out.println(yesTfib.getInvertedIndex().get("calci"));
+            System.out.println(yesTfib.getInvertedIndex().get("co"));
             
-//            System.out.println("YES WORDS:");
-//            for(TweetWord tw : yesList){
-//                System.out.println(tw.getWord());
-//            }
+            System.out.println("YES WORDS:");
+            for(TweetWord tw : yesList){
+                System.out.println(tw.getWord() + " "  + tw.getFrequency());
+            }
 //            
 //            System.out.println("NO WORDS:");
 //            for(TweetWord tw : noList){
