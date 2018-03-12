@@ -133,5 +133,11 @@ public class TermFreqIndexBuilder {
         return invertedIndex;
     }
     
+    public ArrayList getPostingList(String word) {
+        
+        return invertedIndex.get(word);
+        
+    }
+    
     
 }

@@ -78,6 +78,7 @@ public class Kmeans {
         double[][] centroids = new double[k][m];
 
         Random rand = new Random();
+        rand.setSeed(123);
         int[] indices = new int[k];
 
         for (int index = 0; index < k; index++) {

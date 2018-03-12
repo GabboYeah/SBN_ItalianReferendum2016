@@ -7,8 +7,10 @@ package uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import it.stilo.g.structures.WeightedUndirectedGraph;
 import java.io.File;
 import java.io.IOException;
+import static java.lang.Float.max;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -133,34 +135,91 @@ public class Application {
             noTfib.build();
             yesList = yesTfib.getRelWords();
             noList = noTfib.getRelWords();
-            
-            System.out.println(yesTfib.getInvertedIndex().get("co"));
-            
-            System.out.println("YES WORDS:");
-            for(TweetWord tw : yesList){
-                System.out.println(tw.getWord() + " "  + tw.getFrequency());
-            }
+
+//            System.out.println(yesTfib.getInvertedIndex().get("co"));
+//            
+//            System.out.println("YES WORDS:");
+//            for(TweetWord tw : yesList){
+//                System.out.println(tw.getWord() + " "  + tw.getFrequency());
+//            }
 //            
 //            System.out.println("NO WORDS:");
 //            for(TweetWord tw : noList){
 //                System.out.println(tw.getWord());
 //            }
-            
 //            System.out.println("---> YES-RELWORDS: " + yesList.size() + ", NO-RELWORDS: " + noList.size());
-            
             int[] membership = Kmeans.computeKmeans(yesList, 10, 1000);
-            
-            for(int i = 0; i < 10; i++){
-                System.out.println("+Cluster N°" + (i+1) + ":");
+
+            for (int i = 0; i < 10; i++) {
+                System.out.println("+Cluster N°" + (i + 1) + ":");
                 int k = 1;
-                for(int j = 0; j < membership.length; j++){
-                    if(membership[j] == i){
+                for (int j = 0; j < membership.length; j++) {
+                    if (membership[j] == i) {
                         k++;
                     }
                 }
                 System.out.println("+-+ Nmuber of elements: " + k + "\n");
             }
-            
+
+            int rel_k = 2;
+            ArrayList<TweetWord> clusterWords = new ArrayList<TweetWord>();
+            for (int idx = 0; idx < membership.length; idx++) {
+
+                if (membership[idx] == rel_k) {
+
+                    clusterWords.add(yesList.get(idx));
+                    // System.out.println(yesList.get(idx).getWord() + " " + yesList.get(idx).getFrequency());
+                }
+
+            }
+
+            WeightedUndirectedGraph g = new WeightedUndirectedGraph(clusterWords.size());
+
+            for (int i = 0; i < clusterWords.size(); i++) {
+
+                String u = yesList.get(i).getWord();
+                ArrayList uPost = yesTfib.getPostingList(u);
+                int uSize = yesTfib.getPostingList(u).size();
+
+                for (int j = i + 1; j < clusterWords.size(); j++) {
+
+                    String v = yesList.get(j).getWord();
+                    ArrayList vPost = yesTfib.getPostingList(v);
+                    int vSize = yesTfib.getPostingList(v).size();
+
+                    int p = 0, q = 0, intersection = 0;
+                    System.out.println("--------");
+                    while (p < uSize && q < vSize) {
+                        
+                        System.out.println((int) uPost.get(p) +" "+ (int) vPost.get(q));
+
+                        if ((int) uPost.get(p) == (int) vPost.get(q)) {
+
+                            p++;
+                            q++;
+                            intersection++;
+
+                        } else if ((int) uPost.get(p) < (int) vPost.get(q)) {
+
+                            p++;
+                        } else {
+                            q++;
+                        }
+                    }
+
+                    float maxRelFreq = max(intersection / uSize, intersection / vSize);
+
+                    g.add(i, j, maxRelFreq);
+
+                }
+
+            }
+
+            for (int i = 0; i < g.out.length; i++) {
+
+                System.out.println(Arrays.toString(g.weights[i]));
+            }
+
         } catch (IOException ex) {
             ex.printStackTrace();
             System.out.println("ERROR WITH RELEVANT TWEETS");
@@ -174,5 +233,6 @@ public class Application {
             ex.printStackTrace();
             System.out.println("ERROR WITH RELEVANT TWEETS");
         }
+
     }
 }
