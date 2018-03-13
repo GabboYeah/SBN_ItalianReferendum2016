@@ -100,7 +100,7 @@ public class Kmeans {
 
         double[][] centroids = new double[k][m];
 
-        double[] weights = null;
+        double[] weights = new double[data.length];
         Arrays.fill(weights, 1);
 
         for (int i = 0; i < k; i++) {

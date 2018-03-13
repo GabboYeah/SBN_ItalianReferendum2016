@@ -38,9 +38,11 @@ import org.math.plot.Plot2DPanel;
 import twitter4j.TwitterException;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.AnalyticalTools.Kmeans;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities.TweetWord;
+import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities.ClusterGraph;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.PoliticiansIndexManager;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.TweetsIndexManager;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builder.TermFreqIndexBuilder;
+import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Factory.ClusterGraphFactory;
 
 /**
  *
@@ -127,132 +129,36 @@ public class Application {
 //        // put the PlotPanel in a JFrame, as a JPanel
 //        JFrame frame = new JFrame("a plot panel");
 //        frame.setContentPane(plot);
-//        frame.setVisible(true);      
+//        frame.setVisible(true);  
+
         TermFreqIndexBuilder yesTfib = new TermFreqIndexBuilder(43200000L, "index/AllYesTweetsIndex");
         TermFreqIndexBuilder noTfib = new TermFreqIndexBuilder(43200000L, "index/AllNoTweetsIndex");
 
         ArrayList<TweetWord> yesList;
         ArrayList<TweetWord> noList;
 
-        try {
-            yesTfib.build();
-            noTfib.build();
-            yesList = yesTfib.getRelWords();
-            noList = noTfib.getRelWords();
+        int nCluster = 10;
+        int nIter = 1000;
 
-            int nCluster = 10;
-            int nIter = 1000;
+        ClusterGraphFactory cgf = new ClusterGraphFactory(nCluster, nIter);
 
-            int[] yesMembership = Kmeans.computeKmeans(yesList, nCluster, nIter);
-            int[] noMembership = Kmeans.computeKmeans(noList, nCluster, nIter);
-
-//            for (int i = 0; i < 10; i++) {
-//                System.out.println("+Cluster N°" + (i + 1) + ":");
-//                int k = 0;
-//                for (int j = 0; j < membership.length; j++) {
-//                    if (membership[j] == i) {
-//                        k++;
-//                    }
-//                }
-//                System.out.println("+-+ Nmuber of elements: " + k + "\n");
-//            }
-            for (int k = 0; k < nCluster; k++) {
-                ArrayList<TweetWord> clusterWords = new ArrayList<TweetWord>();
-
-                for (int idx = 0; idx < membership.length; idx++) {
-                    if (membership[idx] == k) {
-                        clusterWords.add(yesList.get(idx));
-                    }
-                }
-                
-                WeightedUndirectedGraph g = new WeightedUndirectedGraph(clusterWords.size());
-                
-                for (int i = 0; i < clusterWords.size(); i++) {
-                    String u = clusterWords.get(i).getWord();
-                    ArrayList uPost = yesTfib.getPostingList(u);
-                double uSize = uPost.size();
-                }
-            }
-
+        ArrayList<ClusterGraph> yesGraphs = cgf.generate(yesTfib);
+        ArrayList<ClusterGraph> noGraphs = cgf.generate(noTfib);
+        
+        int i = 1;
+        if(yesGraphs == null || noGraphs == null)
+            System.out.println("VUOTI");
             
-
-                
-                
-
-                for (int j = i + 1; j < clusterWords.size(); j++) {
-
-                    String v = clusterWords.get(j).getWord();
-                    ArrayList vPost = yesTfib.getPostingList(v);
-                    double vSize = yesTfib.getPostingList(v).size();
-
-                    int p = 0, q = 0;
-                    double intersection = 0;
-                    //System.out.println("--------");
-                    while (p < uSize && q < vSize) {
-
-                        //System.out.println((int) uPost.get(p) +" "+ (int) vPost.get(q));
-                        if ((int) uPost.get(p) == (int) vPost.get(q)) {
-
-                            p++;
-                            q++;
-                            intersection++;
-
-                        } else if ((int) uPost.get(p) < (int) vPost.get(q)) {
-
-                            p++;
-                        } else {
-                            q++;
-                        }
-                    }
-                    double div1 = intersection / uSize;
-                    double div2 = intersection / vSize;
-                    float maxRelFreq = max((float) div1, (float) div2);
-                    //System.out.println(u + " " + v + " " + intersection + " " + uSize + " " + vSize + " " + maxRelFreq);
-
-                    if (maxRelFreq > 0.0001) {
-                        g.add(i, j, 1); // NB: lo stiamo facendo non pesato
-                    }
-                }
-
-            }
-
-            for (int i = 0; i < g.out.length; i++) {
-
-                System.out.println(Arrays.toString(g.weights[i]));
-            }
-
-            int worker = (int) (Runtime.getRuntime().availableProcessors());
-
-            int[] all = new int[g.size];
-            for (int i = 0; i < g.size; i++) {
-                all[i] = i;
-            }
-            Set<Set<Integer>> comps = ConnectedComponents.rootedConnectedComponents(g, all, worker);
-
-            for (Set cc : comps) {
-                System.out.println(Arrays.toString(cc.toArray()));
-            }
-
-            Core c = CoreDecomposition.getInnerMostCore(g, worker);
-            System.out.println(c.minDegree);
-            System.out.println(c.seq.length);
-            System.out.println(Arrays.toString(c.seq));
-
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            System.out.println("ERROR WITH RELEVANT TWEETS");
-        } catch (TwitterException ex) {
-            ex.printStackTrace();
-            System.out.println("ERROR WITH RELEVANT TWEETS");
-        } catch (ParseException ex) {
-            ex.printStackTrace();
-            System.out.println("ERROR WITH RELEVANT TWEETS");
-        } catch (SAXException ex) {
-            ex.printStackTrace();
-            System.out.println("ERROR WITH RELEVANT TWEETS");
-        } catch (InterruptedException ex) {
-            Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
+        for(ClusterGraph cg : yesGraphs){
+            System.out.println("Cluster n. " + i + ": ");
+            i++;
+            System.out.println("---> Core:");
+            int[] c = cg.getCore().seq;
+            ArrayList<Integer> cc = new ArrayList<Integer>(); 
+            for(int k = 0; k < c.length; k++)
+                cc.add(c[k]);
+            
+            System.out.println(cg.getWords(cc));
         }
-
     }
 }
