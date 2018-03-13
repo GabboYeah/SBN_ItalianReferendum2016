@@ -111,10 +111,10 @@ public class TermFreqIndexBuilder {
                 }
                 TweetWord tw = twb.build(word, wordValues, (int) freq);
                 //System.out.println(tw.getSaxRep().matches("a+b+a*b*a*"));
-                if (tw.getSaxRep().matches("a+b+a*b*a*")) {
+//                if (tw.getSaxRep().matches("a+b+a*b*a*")) {
                     relWords.add(tw);
                     invertedIndex.put(word, invertedList);
-                }
+//                }
             }
         }
 

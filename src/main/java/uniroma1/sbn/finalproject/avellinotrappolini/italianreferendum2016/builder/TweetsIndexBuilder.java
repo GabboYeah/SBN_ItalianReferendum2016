@@ -151,10 +151,10 @@ public class TweetsIndexBuilder extends IndexBuilder {
 //                    cleanedText = cleanedText.replaceAll("#\\S*", "");
 
                     String cleanedText = sw.getStatus().getText().replace("RT ", " ");
-                    cleanedText = cleanedText.replaceAll("http\\/\\/\\S*", " ");
-                    cleanedText = cleanedText.replaceAll("http\\/\\/\\S*$", " ");
-                    cleanedText = cleanedText.replaceAll("https\\/\\/\\S*", " ");
-                    cleanedText = cleanedText.replaceAll("https\\/\\/\\S*$", " ");
+                    cleanedText = cleanedText.replaceAll("http:\\/\\/\\S*", " ");
+                    cleanedText = cleanedText.replaceAll("http:\\/\\/\\S*$", " ");
+                    cleanedText = cleanedText.replaceAll("https:\\/\\/\\S*", " ");
+                    cleanedText = cleanedText.replaceAll("https:\\/\\/\\S*$", " ");
                     cleanedText = cleanedText.replaceAll("[^(\\w|\\d|\\s)]", " ");
                     cleanedText = cleanedText.replaceAll("@\\S*", "");
                     //System.out.println(cleanedText);

@@ -7,6 +7,9 @@ package uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import it.stilo.g.algo.ConnectedComponents;
+import it.stilo.g.algo.CoreDecomposition;
+import it.stilo.g.structures.Core;
 import it.stilo.g.structures.WeightedUndirectedGraph;
 import java.io.File;
 import java.io.IOException;
@@ -19,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.DoubleStream;
@@ -138,7 +142,7 @@ public class Application {
 
 //            System.out.println(yesTfib.getInvertedIndex().get("co"));
 //            
-//            System.out.println("YES WORDS:");
+//            System.out.println("YES WORDS: ");
 //            for(TweetWord tw : yesList){
 //                System.out.println(tw.getWord() + " "  + tw.getFrequency());
 //            }
@@ -152,16 +156,21 @@ public class Application {
 
             for (int i = 0; i < 10; i++) {
                 System.out.println("+Cluster N°" + (i + 1) + ":");
-                int k = 1;
+                int k = 0;
                 for (int j = 0; j < membership.length; j++) {
                     if (membership[j] == i) {
                         k++;
+//                        
+//                        if (i == 2) {
+//                            System.err.println(yesList.get(j).getWord());
+//                        }
                     }
                 }
                 System.out.println("+-+ Nmuber of elements: " + k + "\n");
             }
 
             int rel_k = 2;
+
             ArrayList<TweetWord> clusterWords = new ArrayList<TweetWord>();
             for (int idx = 0; idx < membership.length; idx++) {
 
@@ -177,22 +186,22 @@ public class Application {
 
             for (int i = 0; i < clusterWords.size(); i++) {
 
-                String u = yesList.get(i).getWord();
+                String u = clusterWords.get(i).getWord();
                 ArrayList uPost = yesTfib.getPostingList(u);
-                int uSize = yesTfib.getPostingList(u).size();
+                double uSize = yesTfib.getPostingList(u).size();
 
                 for (int j = i + 1; j < clusterWords.size(); j++) {
 
-                    String v = yesList.get(j).getWord();
+                    String v = clusterWords.get(j).getWord();
                     ArrayList vPost = yesTfib.getPostingList(v);
-                    int vSize = yesTfib.getPostingList(v).size();
+                    double vSize = yesTfib.getPostingList(v).size();
 
-                    int p = 0, q = 0, intersection = 0;
-                    System.out.println("--------");
+                    int p = 0, q = 0;
+                    double intersection = 0;
+                    //System.out.println("--------");
                     while (p < uSize && q < vSize) {
-                        
-                        System.out.println((int) uPost.get(p) +" "+ (int) vPost.get(q));
 
+                        //System.out.println((int) uPost.get(p) +" "+ (int) vPost.get(q));
                         if ((int) uPost.get(p) == (int) vPost.get(q)) {
 
                             p++;
@@ -206,11 +215,13 @@ public class Application {
                             q++;
                         }
                     }
-
-                    float maxRelFreq = max(intersection / uSize, intersection / vSize);
-
-                    g.add(i, j, maxRelFreq);
-
+                    double div1 = intersection / uSize;
+                    double div2 = intersection / vSize;
+                    float maxRelFreq = max((float) div1, (float) div2);
+                    //System.out.println(u + " " + v + " " + intersection + " " + uSize + " " + vSize + " " + maxRelFreq);
+                    
+                    if (maxRelFreq > 0.0001)
+                        g.add(i, j, 1); // NB: lo stiamo facendo non pesato
                 }
 
             }
@@ -219,6 +230,25 @@ public class Application {
 
                 System.out.println(Arrays.toString(g.weights[i]));
             }
+
+            int worker = (int) (Runtime.getRuntime().availableProcessors());
+
+            int[] all = new int[g.size];
+            for (int i = 0; i < g.size; i++) {
+                all[i] = i;
+            }
+            Set<Set<Integer>> comps = ConnectedComponents.rootedConnectedComponents(g, all, worker);
+            
+            for (Set cc : comps) {
+                System.out.println(Arrays.toString(cc.toArray()));
+            }
+            
+            Core c = CoreDecomposition.getInnerMostCore(g, worker);
+            System.out.println(c.minDegree);
+            System.out.println(c.seq.length);
+            System.out.println(Arrays.toString(c.seq));
+            
+            
 
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -232,6 +262,8 @@ public class Application {
         } catch (SAXException ex) {
             ex.printStackTrace();
             System.out.println("ERROR WITH RELEVANT TWEETS");
+        } catch (InterruptedException ex) {
+            Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
