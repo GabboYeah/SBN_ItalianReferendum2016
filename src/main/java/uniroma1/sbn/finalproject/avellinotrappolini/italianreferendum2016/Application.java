@@ -140,55 +140,44 @@ public class Application {
             yesList = yesTfib.getRelWords();
             noList = noTfib.getRelWords();
 
-//            System.out.println(yesTfib.getInvertedIndex().get("co"));
-//            
-//            System.out.println("YES WORDS: ");
-//            for(TweetWord tw : yesList){
-//                System.out.println(tw.getWord() + " "  + tw.getFrequency());
-//            }
-//            
-//            System.out.println("NO WORDS:");
-//            for(TweetWord tw : noList){
-//                System.out.println(tw.getWord());
-//            }
-//            System.out.println("---> YES-RELWORDS: " + yesList.size() + ", NO-RELWORDS: " + noList.size());
-            int[] membership = Kmeans.computeKmeans(yesList, 10, 1000);
+            int nCluster = 10;
+            int nIter = 1000;
 
-            for (int i = 0; i < 10; i++) {
-                System.out.println("+Cluster N°" + (i + 1) + ":");
-                int k = 0;
-                for (int j = 0; j < membership.length; j++) {
-                    if (membership[j] == i) {
-                        k++;
-//                        
-//                        if (i == 2) {
-//                            System.err.println(yesList.get(j).getWord());
-//                        }
+            int[] yesMembership = Kmeans.computeKmeans(yesList, nCluster, nIter);
+            int[] noMembership = Kmeans.computeKmeans(noList, nCluster, nIter);
+
+//            for (int i = 0; i < 10; i++) {
+//                System.out.println("+Cluster N°" + (i + 1) + ":");
+//                int k = 0;
+//                for (int j = 0; j < membership.length; j++) {
+//                    if (membership[j] == i) {
+//                        k++;
+//                    }
+//                }
+//                System.out.println("+-+ Nmuber of elements: " + k + "\n");
+//            }
+            for (int k = 0; k < nCluster; k++) {
+                ArrayList<TweetWord> clusterWords = new ArrayList<TweetWord>();
+
+                for (int idx = 0; idx < membership.length; idx++) {
+                    if (membership[idx] == k) {
+                        clusterWords.add(yesList.get(idx));
                     }
                 }
-                System.out.println("+-+ Nmuber of elements: " + k + "\n");
-            }
-
-            int rel_k = 2;
-
-            ArrayList<TweetWord> clusterWords = new ArrayList<TweetWord>();
-            for (int idx = 0; idx < membership.length; idx++) {
-
-                if (membership[idx] == rel_k) {
-
-                    clusterWords.add(yesList.get(idx));
-                    // System.out.println(yesList.get(idx).getWord() + " " + yesList.get(idx).getFrequency());
+                
+                WeightedUndirectedGraph g = new WeightedUndirectedGraph(clusterWords.size());
+                
+                for (int i = 0; i < clusterWords.size(); i++) {
+                    String u = clusterWords.get(i).getWord();
+                    ArrayList uPost = yesTfib.getPostingList(u);
+                double uSize = uPost.size();
                 }
-
             }
 
-            WeightedUndirectedGraph g = new WeightedUndirectedGraph(clusterWords.size());
+            
 
-            for (int i = 0; i < clusterWords.size(); i++) {
-
-                String u = clusterWords.get(i).getWord();
-                ArrayList uPost = yesTfib.getPostingList(u);
-                double uSize = yesTfib.getPostingList(u).size();
+                
+                
 
                 for (int j = i + 1; j < clusterWords.size(); j++) {
 
@@ -219,9 +208,10 @@ public class Application {
                     double div2 = intersection / vSize;
                     float maxRelFreq = max((float) div1, (float) div2);
                     //System.out.println(u + " " + v + " " + intersection + " " + uSize + " " + vSize + " " + maxRelFreq);
-                    
-                    if (maxRelFreq > 0.0001)
+
+                    if (maxRelFreq > 0.0001) {
                         g.add(i, j, 1); // NB: lo stiamo facendo non pesato
+                    }
                 }
 
             }
@@ -238,17 +228,15 @@ public class Application {
                 all[i] = i;
             }
             Set<Set<Integer>> comps = ConnectedComponents.rootedConnectedComponents(g, all, worker);
-            
+
             for (Set cc : comps) {
                 System.out.println(Arrays.toString(cc.toArray()));
             }
-            
+
             Core c = CoreDecomposition.getInnerMostCore(g, worker);
             System.out.println(c.minDegree);
             System.out.println(c.seq.length);
             System.out.println(Arrays.toString(c.seq));
-            
-            
 
         } catch (IOException ex) {
             ex.printStackTrace();
