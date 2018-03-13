@@ -18,7 +18,7 @@ import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entiti
 public class Kmeans {
 
     public static int[] computeKmeans(ArrayList<TweetWord> wordsInfo, int k, int maxIt) {
-        
+
         if (k < 2) {
             throw new IllegalArgumentException("Invalid number of Clusters: " + k);
         }
@@ -31,7 +31,7 @@ public class Kmeans {
         int m = wordsInfo.get(0).getTimeSeries().length; // number of dimensions
 
         double[][] data = getData(wordsInfo);
-        double[][] centroids = initializeCentroids(data, k, m);
+        double[][] centroids = initializeCentroidspp(data, k, m);
         int[] memberships = new int[n];
 
         int i = 0;
@@ -40,14 +40,14 @@ public class Kmeans {
 
             memberships = assignMembership(data, centroids);
             double[][] newCentroids = updateCentroids(data, memberships, k, m);
-            
+
             areCentroidsChanged = computeMagnitudeUpdate(newCentroids, centroids);
             centroids = newCentroids.clone();
-            
+
             i++;
 
         }
-        if (i >= maxIt){
+        if (i >= maxIt) {
             System.out.println("MaxIter reached!");
         } else {
             System.out.println("Eps reached. Num iter = " + i);
@@ -72,7 +72,7 @@ public class Kmeans {
         }
         return data;
     }
-    
+
     private static double[][] initializeCentroids(double[][] data, int k, int m) {
 
         double[][] centroids = new double[k][m];
@@ -95,7 +95,71 @@ public class Kmeans {
         return centroids;
 
     }
-    
+
+    private static double[][] initializeCentroidspp(double[][] data, int k, int m) {
+
+        double[][] centroids = new double[k][m];
+
+        double[] weights = null;
+        Arrays.fill(weights, 1);
+
+        for (int i = 0; i < k; i++) {
+
+            // pick a point in a weighted fashion
+            int newIndex = selectRandomWeightedIndex(weights);
+            // add it to the set of centroids
+            centroids[i] = data[newIndex];
+
+            for (int idx = 0; idx < data.length; idx++) {
+
+                double maxDist = 1000000;
+
+                for (int c = 0; c < i + 1; c++) {
+
+                    double centrDist = computeDistance(data[idx], centroids[c]);
+                    if (centrDist < maxDist) {
+
+                        maxDist = centrDist;
+
+                    }
+                    weights[idx] = Math.pow(maxDist, 2);
+
+                }
+
+            }
+
+        }
+
+        return centroids;
+
+    }
+
+    private static int selectRandomWeightedIndex(double[] weights) {
+
+        Random rand = new Random();
+        rand.setSeed(123);
+
+        // Compute the total weight of all items together
+        double totalWeight = 0.0d;
+        for (double i : weights) {
+
+            totalWeight += i;
+        }
+        // Now choose a random item
+        int randomIndex = -1;
+        double random = rand.nextDouble() * totalWeight;
+        for (int i = 0; i < weights.length; ++i) {
+            random -= weights[i];
+            if (random <= 0.0d) {
+                randomIndex = i;
+                break;
+            }
+        }
+
+        return randomIndex;
+
+    }
+
     private static int[] assignMembership(double[][] data, double[][] centroids) {
 
         int[] memberships = new int[data.length];
@@ -119,7 +183,7 @@ public class Kmeans {
         return memberships;
 
     }
-    
+
     private static double computeDistance(double[] vec1, double[] vec2) {
 
         int n = vec1.length;
@@ -136,7 +200,7 @@ public class Kmeans {
         return dist;
 
     }
-    
+
     private static double[][] updateCentroids(double[][] data, int[] membership, int k, int m) {
 
         double[][] centroids = new double[k][m];
@@ -161,7 +225,7 @@ public class Kmeans {
         return centroids;
 
     }
-    
+
     private static double[] addVectors(double[] vec1, double[] vec2) {
 
         int n = vec1.length;
@@ -175,7 +239,7 @@ public class Kmeans {
 
         return result;
     }
-    
+
     private static double[] averageVec(double[] vec, int divisor) {
 
         for (int i = 0; i < vec.length; i++) {
@@ -185,17 +249,18 @@ public class Kmeans {
         return vec;
     }
 
-    private static boolean computeMagnitudeUpdate(double[][] newCentroids, double[][] oldCentroids){
-        
+    private static boolean computeMagnitudeUpdate(double[][] newCentroids, double[][] oldCentroids) {
+
         double magnitude = 0;
-        for(int i = 0; i < newCentroids.length; i++){
-            
+        for (int i = 0; i < newCentroids.length; i++) {
+
             magnitude += computeDistance(newCentroids[i], oldCentroids[i]);
-            
-            if(magnitude > 0)
+
+            if (magnitude > 0) {
                 return Boolean.TRUE;
+            }
         }
-        
+
         return Boolean.FALSE;
     }
 }
