@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -65,8 +67,11 @@ public class TermFreqIndexBuilder {
         IndexReader ir = DirectoryReader.open(dir);
         IndexSearcher searcher = new IndexSearcher(ir);
 
+        ArrayList<String> words = new ArrayList<String>();
+        Set<String> wordsSet = new HashSet<String>();
+
         Fields fields = MultiFields.getFields(ir);
-        String[] relevantFields = {"tweetText"};
+        String[] relevantFields = {"tweetText", "hashtags"};
 
         int arraySize = (int) (((max - min) / stepSize) + 1);
 
@@ -87,11 +92,10 @@ public class TermFreqIndexBuilder {
                 freq = termsEnum.totalTermFreq();
 
                 BytesRef byteRef = termsEnum.term();
-                word = new String(byteRef.bytes, byteRef.offset, byteRef.length);
-                word = word.replaceAll("[^(\\w|\\d|\\s)]", "");
+                word = byteRef.utf8ToString();
+
                 //System.out.println("-------------> " + word);
                 //System.out.println("freq: " + freq);
-
                 double[] wordValues = initialArray.clone();
 
                 Analyzer stdAn = new StandardAnalyzer(Version.LUCENE_41);
@@ -101,9 +105,9 @@ public class TermFreqIndexBuilder {
 
                 TopDocs hits = searcher.search(q, 1000000);
                 ScoreDoc[] scoreDocs = hits.scoreDocs;
-    
+
                 ArrayList<Integer> invertedList = new ArrayList<Integer>();
-                
+
                 for (ScoreDoc sd : scoreDocs) {
                     i = (int) ((Long.parseLong(ir.document(sd.doc).get("date")) - min) / stepSize);
                     invertedList.add(sd.doc);
@@ -111,18 +115,21 @@ public class TermFreqIndexBuilder {
                 }
                 TweetWord tw = twb.build(word, wordValues, (int) freq);
                 //System.out.println(tw.getSaxRep().matches("a+b+a*b*a*"));
-                if (tw.getSaxRep().matches("a+b+a*b*a*")) {
+                if (tw.getSaxRep().matches("a+b+a*b*a*") && !wordsSet.contains(word)) {
+                    words.add(word);
+                    wordsSet.add(word);
                     relWords.add(tw);
                     invertedIndex.put(word, invertedList);
                 }
             }
         }
 
+        System.out.println(words.size() + " " + wordsSet.size());
+
         Collections.sort(relWords);
 
         relWords = (ArrayList) relWords.stream().limit(1000).collect(Collectors.toList());
 
-        
     }
 
     public ArrayList<TweetWord> getRelWords() {
@@ -132,12 +139,11 @@ public class TermFreqIndexBuilder {
     public HashMap<String, ArrayList> getInvertedIndex() {
         return invertedIndex;
     }
-    
+
     public ArrayList getPostingList(String word) {
-        
+
         return invertedIndex.get(word);
-        
+
     }
-    
-    
+
 }

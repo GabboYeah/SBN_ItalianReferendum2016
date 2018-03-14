@@ -70,6 +70,8 @@ public class ClusterGraph {
     public Core getCore() {
         return core;
     }
-    
-    
+
+    public ArrayList<String> getLabels() {
+        return labels;
+    } 
 }

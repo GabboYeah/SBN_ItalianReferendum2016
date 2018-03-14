@@ -23,6 +23,7 @@ import org.apache.lucene.document.LongField;
 import org.apache.lucene.document.StringField;
 import twitter4j.HashtagEntity;
 import twitter4j.TwitterException;
+import twitter4j.UserMentionEntity;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.DAO.StatusWrapper;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.PoliticiansIndexManager;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.TweetsIndexManager;
@@ -47,6 +48,8 @@ public class TweetsIndexBuilder extends IndexBuilder {
     private TextField tweetText;
     //
     private TextField hashtags;
+    //
+    private TextField mentioned;
     //
     private LongField followers;
 
@@ -83,6 +86,7 @@ public class TweetsIndexBuilder extends IndexBuilder {
         this.screenName = new StringField("screenName", "", Field.Store.YES);
         this.tweetText = new TextField("tweetText", "", Field.Store.YES);
         this.hashtags = new TextField("hashtags", "", Field.Store.YES);
+        this.mentioned = new TextField("mentioned", "", Field.Store.YES);
         this.followers = new LongField("followers", 0L, Field.Store.YES);
 
         this.tweet.add(this.userId);
@@ -91,6 +95,7 @@ public class TweetsIndexBuilder extends IndexBuilder {
         this.tweet.add(this.screenName);
         this.tweet.add(this.tweetText);
         this.tweet.add(this.hashtags);
+        this.tweet.add(this.mentioned);
         this.tweet.add(this.followers);
 
         this.tweetsSourcePath = tweetsSourcePath;
@@ -163,9 +168,15 @@ public class TweetsIndexBuilder extends IndexBuilder {
                     this.followers.setLongValue((long) sw.getStatus().getUser().getFollowersCount());
                     String hashtags = "";
                     for (HashtagEntity hashtag : sw.getStatus().getHashtagEntities()) {
-                        hashtags += hashtag.getText() + " ";
+                        hashtags += "#" + hashtag.getText() + " ";
                     }
                     this.hashtags.setStringValue(hashtags);
+                    
+                    String mentionedPeople = "";
+                    for (UserMentionEntity user : sw.getStatus().getUserMentionEntities()) {
+                        hashtags += user.getText() + " ";
+                    }
+                    this.mentioned.setStringValue(mentionedPeople);
                     this.writer.addDocument(this.tweet);
                 }
             }

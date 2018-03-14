@@ -130,7 +130,6 @@ public class Application {
 //        JFrame frame = new JFrame("a plot panel");
 //        frame.setContentPane(plot);
 //        frame.setVisible(true);  
-
         TermFreqIndexBuilder yesTfib = new TermFreqIndexBuilder(43200000L, "index/AllYesTweetsIndex");
         TermFreqIndexBuilder noTfib = new TermFreqIndexBuilder(43200000L, "index/AllNoTweetsIndex");
 
@@ -144,21 +143,45 @@ public class Application {
 
         ArrayList<ClusterGraph> yesGraphs = cgf.generate(yesTfib);
         ArrayList<ClusterGraph> noGraphs = cgf.generate(noTfib);
-        
+
         int i = 1;
-        if(yesGraphs == null || noGraphs == null)
-            System.out.println("VUOTI");
-            
-        for(ClusterGraph cg : yesGraphs){
+
+        for (ClusterGraph cg : yesGraphs) {
             System.out.println("Cluster n. " + i + ": ");
             i++;
             System.out.println("---> Core:");
             int[] c = cg.getCore().seq;
-            ArrayList<Integer> cc = new ArrayList<Integer>(); 
-            for(int k = 0; k < c.length; k++)
+            ArrayList<Integer> cc = new ArrayList<Integer>();
+            for (int k = 0; k < c.length; k++) {
                 cc.add(c[k]);
-            
+            }
+
             System.out.println(cg.getWords(cc));
+        }
+        i = 1;
+        for (ClusterGraph cg : noGraphs) {
+            System.out.println("Cluster n. " + i + ": ");
+            i++;
+            System.out.println("---> Core:");
+            int[] c = cg.getCore().seq;
+            ArrayList<Integer> cc = new ArrayList<Integer>();
+            for (int k = 0; k < c.length; k++) {
+                cc.add(c[k]);
+            }
+
+            System.out.println(cg.getWords(cc));
+
+            System.out.println("---> Comps:");
+            Integer[] cp;
+            Set<Set<Integer>> comps = cg.getComps();
+            for (Set<Integer> comp : comps) {
+                ArrayList<Integer> l = new ArrayList<Integer>();
+                for (int elem : comp) {
+                    l.add(elem);
+                }
+                System.out.println(cg.getWords(l));
+            }
+            System.out.println("");
         }
     }
 }
