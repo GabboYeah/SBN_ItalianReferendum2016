@@ -102,11 +102,17 @@ public class Kmeans {
 
         double[] weights = new double[data.length];
         Arrays.fill(weights, 1);
+        
+        Random rand = new Random();
+        // rand.setSeed(12345);
+        // rand.setSeed(1234);
+        rand.setSeed(1);
 
         for (int i = 0; i < k; i++) {
 
             // pick a point in a weighted fashion
-            int newIndex = selectRandomWeightedIndex(weights);
+            double random = rand.nextDouble();
+            int newIndex = selectRandomWeightedIndex(weights, random);
             // add it to the set of centroids
             centroids[i] = data[newIndex];
 
@@ -134,10 +140,8 @@ public class Kmeans {
 
     }
 
-    private static int selectRandomWeightedIndex(double[] weights) {
+    private static int selectRandomWeightedIndex(double[] weights, double random) {
 
-        Random rand = new Random();
-        rand.setSeed(123);
 
         // Compute the total weight of all items together
         double totalWeight = 0.0d;
@@ -147,7 +151,7 @@ public class Kmeans {
         }
         // Now choose a random item
         int randomIndex = -1;
-        double random = rand.nextDouble() * totalWeight;
+        random *= totalWeight;
         for (int i = 0; i < weights.length; ++i) {
             random -= weights[i];
             if (random <= 0.0d) {

@@ -11,6 +11,7 @@ import it.stilo.g.algo.ConnectedComponents;
 import it.stilo.g.algo.CoreDecomposition;
 import it.stilo.g.structures.Core;
 import it.stilo.g.structures.WeightedUndirectedGraph;
+import it.stilo.g.util.GraphReader;
 import java.io.File;
 import java.io.IOException;
 import static java.lang.Float.max;
@@ -183,5 +184,16 @@ public class Application {
             }
             System.out.println("");
         }
+        
+        
+        // read the provided graph
+        WeightedUndirectedGraph g = new WeightedUndirectedGraph(1040334728);
+        try {
+            GraphReader.readGraph(g, "input/Official_SBN-ITA-2016-Net.gz", true);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        
+        
     }
 }
