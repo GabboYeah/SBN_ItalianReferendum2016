@@ -6,14 +6,25 @@
 package uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Factory;
 
 import it.stilo.g.structures.WeightedUndirectedGraph;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import static java.lang.Float.max;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.seninp.jmotif.sax.SAXException;
 import org.apache.lucene.queries.function.valuesource.TermFreqValueSource;
 import org.apache.lucene.queryparser.classic.ParseException;
+import twitter4j.JSONArray;
 import twitter4j.TwitterException;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.AnalyticalTools.Kmeans;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities.TweetWord;
@@ -41,9 +52,36 @@ public class ClusterGraphFactory {
 
             tfib.build();
             ArrayList<TweetWord> relWords = tfib.getRelWords();
-
-            int[] membership = Kmeans.computeKmeans(relWords, nCluster, nIter);
             
+            int[] membership;
+            Path dir = Paths.get("input/membership");
+            if (!Files.exists(dir)) {
+
+                membership = Kmeans.computeKmeans(relWords, nCluster, nIter);
+                BufferedWriter outputWriter;
+                outputWriter = new BufferedWriter(new FileWriter("input/membership"));
+                outputWriter.write(membership.length+"");
+                outputWriter.newLine();
+                for (int i = 0; i < membership.length; i++) {
+                    // Maybe:
+                    outputWriter.write(membership[i]+"");
+                    outputWriter.newLine();
+                }
+
+                outputWriter.flush();
+                outputWriter.close();
+
+            } else {
+
+                System.out.println("File membership already exist!");
+                Scanner s = new Scanner(new File("input/membership"));
+                membership = new int[s.nextInt()];
+                for (int i = 0; i < membership.length; i++) {
+                    membership[i] = s.nextInt();
+                }
+
+            }
+
             for (int i = 0; i < 10; i++) {
                 System.out.println("+Cluster N°" + (i + 1) + ":");
                 int k = 0;
@@ -100,15 +138,16 @@ public class ClusterGraphFactory {
                         }
                     }
                 }
-                
+
                 ArrayList<String> labels = new ArrayList<String>();
-                
-                for(TweetWord tw : clusterWords)
+
+                for (TweetWord tw : clusterWords) {
                     labels.add(tw.getWord());
-                
+                }
+
                 cgs.add(new ClusterGraph(g, labels));
             }
-            
+
             return cgs;
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -119,7 +158,7 @@ public class ClusterGraphFactory {
         } catch (SAXException ex) {
             ex.printStackTrace();
         }
-        
+
         return null;
     }
 }
