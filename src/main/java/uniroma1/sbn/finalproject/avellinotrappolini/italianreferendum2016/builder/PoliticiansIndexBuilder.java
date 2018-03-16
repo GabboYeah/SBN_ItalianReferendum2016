@@ -11,6 +11,7 @@ import java.util.HashMap;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
+import twitter4j.TwitterException;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.DAO.CSVReader;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.TweetsIndexManager;
 
@@ -29,6 +30,11 @@ public class PoliticiansIndexBuilder extends IndexBuilder {
     private StringField name;
     private StringField screenName;
 
+    /**
+     *
+     * @param sourcePath
+     * @param indexPath
+     */
     public PoliticiansIndexBuilder(String sourcePath, String indexPath) {
         this.politician = new Document();
         this.name = new StringField("name", "", Field.Store.YES);
@@ -59,8 +65,13 @@ public class PoliticiansIndexBuilder extends IndexBuilder {
         this.indexPath = indexPath;
     }
 
+    /**
+     *
+     * @throws IOException
+     * @throws TwitterException
+     */
     @Override
-    public void build() throws IOException {
+    public void build() throws IOException, TwitterException {
         CSVReader csvr = new CSVReader(",", sourcePath);
         ArrayList<String[]> rows;
 
@@ -108,8 +119,26 @@ public class PoliticiansIndexBuilder extends IndexBuilder {
         this.writer.commit();
     }
 
+    /**
+     *
+     * @param fieldName
+     * @param fieldValues
+     * @throws IOException
+     */
+    @Override
+    public void build(String fieldName, ArrayList<String> fieldValues) throws IOException {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }      
+
+    /**
+     *
+     * @param name
+     * @param surname
+     * @return
+     * @throws IOException
+     */
     public String[] findUserTwitterId(String name, String surname) throws IOException {
-        TweetsIndexManager tim = new TweetsIndexManager("stream", "index/AllTweetsIndex");
+        TweetsIndexManager tim = new TweetsIndexManager("index/AllTweetsIndex");
 
         ArrayList<Document> results = tim.searchForField("name", (name + " " + surname).toLowerCase(), 10000);
         int max = 0;

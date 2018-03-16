@@ -9,6 +9,7 @@ import it.stilo.g.algo.ConnectedComponents;
 import it.stilo.g.algo.CoreDecomposition;
 import it.stilo.g.structures.Core;
 import it.stilo.g.structures.WeightedUndirectedGraph;
+import it.stilo.g.util.NodesMapper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Set;
@@ -24,13 +25,22 @@ public class ClusterGraph {
     private WeightedUndirectedGraph g;
     private Set<Set<Integer>> comps;
     private Core core;
-    private ArrayList<String> labels;
 
-    public ClusterGraph(WeightedUndirectedGraph g, ArrayList<String> labels) {
+    /**
+     *
+     */
+    public NodesMapper<String> nodeMapper;
+
+    /**
+     *
+     * @param g
+     * @param nodeMapper
+     */
+    public ClusterGraph(WeightedUndirectedGraph g, NodesMapper<String> nodeMapper) {
 
         this.g = g;
         
-        this.labels = labels;
+        this.nodeMapper = nodeMapper;
         
         int worker = (int) (Runtime.getRuntime().availableProcessors());
 
@@ -49,29 +59,42 @@ public class ClusterGraph {
         }
     }
     
+    /**
+     *
+     * @param nodes
+     * @return
+     */
     public ArrayList<String> getWords(ArrayList<Integer> nodes){
         ArrayList<String> nodeNames = new ArrayList<String>();
         
         for(int node : nodes){
-            nodeNames.add(labels.get(node));
+            nodeNames.add(nodeMapper.getNode(node));
         }
         
         return nodeNames;
     }
 
+    /**
+     *
+     * @return
+     */
     public WeightedUndirectedGraph getG() {
         return g;
     }
 
+    /**
+     *
+     * @return
+     */
     public Set<Set<Integer>> getComps() {
         return comps;
     }
 
+    /**
+     *
+     * @return
+     */
     public Core getCore() {
         return core;
     }
-
-    public ArrayList<String> getLabels() {
-        return labels;
-    } 
 }

@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.it.ItalianAnalyzer;
 import org.apache.lucene.index.IndexWriter;
@@ -23,17 +24,58 @@ import twitter4j.TwitterException;
  * @author Gabriele
  */
 public abstract class IndexBuilder {
+
+    /**
+     *
+     */
     public Directory dir;
     //Lucene paramethers
+
+    /**
+     *
+     */
     public Analyzer analyzer;
+
+    /**
+     *
+     */
     public IndexWriterConfig cfg;
+
+    /**
+     *
+     */
     public IndexWriter writer;
     
+    /**
+     *
+     */
     public String sourcePath;
+
+    /**
+     *
+     */
     public String indexPath;
     
+    /**
+     *
+     * @throws IOException
+     * @throws TwitterException
+     */
     public abstract void build() throws IOException, TwitterException;
     
+    /**
+     *
+     * @param fieldName
+     * @param fieldValues
+     * @throws IOException
+     */
+    public abstract void build(String fieldName, ArrayList<String> fieldValues) throws IOException;
+    
+    /**
+     *
+     * @param dirName
+     * @throws IOException
+     */
     public void setBuilderParams(String dirName) throws IOException {
         this.dir = new SimpleFSDirectory(new File(dirName));
         this.analyzer = new ItalianAnalyzer(LUCENE_41);

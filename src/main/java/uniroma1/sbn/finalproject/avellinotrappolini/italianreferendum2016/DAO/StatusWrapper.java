@@ -25,12 +25,28 @@ public class StatusWrapper {
     private Status status = null;
     private String state = PROCESS_STATE;
     private final static Matcher m = Pattern.compile("^<o><t>([0-9]+)</t><l>([a-zA-Z]+.[a-zA-Z]*)</l><p><\\!\\[CDATA\\[(.*)\\]\\]></p></o>").matcher("");
+
+    /**
+     *
+     */
     public static String PROCESS_STATE = "process";
+
+    /**
+     *
+     */
     public static String SKIP_STATE = "skip";
+
+    /**
+     *
+     */
     public static String STOP_STATE = "stop";
     private String rawJson;
     
-
+    /**
+     *
+     * @param tms
+     * @param st
+     */
     public StatusWrapper(long tms, Status st) {
         synchronized (this) {
             this.count = GCOUNT;
@@ -40,6 +56,9 @@ public class StatusWrapper {
         this.status = st;
     }
 
+    /**
+     *
+     */
     public StatusWrapper() {
         synchronized (this) {
             this.count = GCOUNT;
@@ -47,6 +66,11 @@ public class StatusWrapper {
         }
     }
 
+    /**
+     *
+     * @param xmlLine
+     * @throws TwitterException
+     */
     public void load(String xmlLine) throws TwitterException {
         if (status == null) {
             m.reset(xmlLine);
@@ -62,43 +86,85 @@ public class StatusWrapper {
     /*public String getRawJson() {
         return rawJson;
     }*/
+
+    /**
+     *
+     * @return
+     */
+
     
     public long getCount() {
         return count;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getLang() {
         return lang;
     }
 
+    /**
+     *
+     * @param lang
+     */
     public void setLang(String lang) {
         this.lang = lang;
     }
 
+    /**
+     *
+     * @return
+     */
     public Status getStatus() {
         return status;
     }
 
+    /**
+     *
+     * @return
+     */
     public long getTime() {
         return time;
     }
 
+    /**
+     *
+     * @return
+     */
     public String getState() {
         return state;
     }
 
+    /**
+     *
+     * @param state
+     */
     public void setState(String state) {
         this.state = state;
     }
 
+    /**
+     *
+     * @return
+     */
     public Map<String, Object> getLocal() {
         return local;
     }
 
+    /**
+     *
+     * @return
+     */
     public Map<String, Object> getGlobal() {
         return global;
     }
     
+    /**
+     *
+     * @return
+     */
     public synchronized String getRawJson(){
         if(this.rawJson==null){
             this.rawJson=DataObjectFactory.getRawJSON(status);
@@ -106,6 +172,10 @@ public class StatusWrapper {
         return this.rawJson;
     }
 
+    /**
+     *
+     * @return
+     */
     public String toXMLLine() {
         String ret = "<o>";
         ret += "<t>" + time + "</t>";

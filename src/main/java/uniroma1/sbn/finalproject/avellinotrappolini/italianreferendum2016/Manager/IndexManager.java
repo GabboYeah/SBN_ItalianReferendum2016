@@ -14,11 +14,14 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.Term;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.TotalHitCountCollector;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 
@@ -28,27 +31,53 @@ import org.apache.lucene.store.SimpleFSDirectory;
  */
 public abstract class IndexManager {
 
-    public String sourcePath;
+    /**
+     *
+     */
     public String indexPath;
 
-    public IndexManager(String sourcePath, String indexPath) {
-        this.sourcePath = sourcePath;
+    /**
+     *
+     */
+    public IndexReader ir;
+
+    /**
+     *
+     */
+    public IndexSearcher searcher;
+
+    /**
+     *
+     * @param indexPath
+     */
+    public IndexManager(String indexPath) {
         this.indexPath = indexPath;
     }
-    
-    public IndexManager(String tweetsSourcePath, String polsSourcePath, String indexPath){
-        
-    }
 
-    public abstract void create();
+    /**
+     *
+     * @param sourcePath
+     */
+    public abstract void create(String sourcePath);
 
+    /**
+     *
+     * @param sourcePath
+     * @param fieldName
+     * @param fieldValues
+     */
+    public abstract void create(String sourcePath, String fieldName, ArrayList<String> fieldValues);
+
+    /**
+     *
+     * @param fieldName
+     * @param fieldValue
+     * @param range
+     * @return
+     */
     public ArrayList<Document> searchForField(String fieldName, String fieldValue, int range) {
-        Directory dir;
         try {
-            dir = new SimpleFSDirectory(new File(indexPath));
-            
-            IndexReader ir = DirectoryReader.open(dir);
-            IndexSearcher searcher = new IndexSearcher(ir);
+            this.setReader(this.indexPath);
 
             Query q = new TermQuery(new Term(fieldName, fieldValue));
             TopDocs top = searcher.search(q, range);
@@ -64,15 +93,79 @@ public abstract class IndexManager {
             }
 
             return results;
-            
+
         } catch (IOException ex) {
             System.out.println("---> Problems with source files: IOException <---");
             ex.printStackTrace();
-            
+
             return null;
         }
     }
-    
+
+    /**
+     *
+     * @param fieldName
+     * @param fieldValues
+     * @param range
+     * @return
+     */
+    public ArrayList<Document> searchForField(String fieldName, ArrayList<String> fieldValues, int range) {
+
+        ArrayList<Document> results = new ArrayList<>();
+
+        for (String fieldValue : fieldValues) {
+            results.addAll(searchForField(fieldName, fieldValue, range));
+        }
+
+        return results;
+    }
+
+    /**
+     *
+     * @param docs
+     * @param fieldName
+     * @return
+     */
+    public ArrayList<String> getFieldValuesList(ArrayList<Document> docs, String fieldName) {
+        ArrayList<String> results = new ArrayList<String>();
+
+        for (Document doc : docs) {
+            results.add(doc.get(fieldName));
+        }
+
+        return results;
+    }
+
+    /**
+     *
+     * @param filterFieldName
+     * @param filterFieldValues
+     * @param fieldOfInterest
+     * @param range
+     * @return
+     */
+    public ArrayList<String> searchFilteredValueField(String filterFieldName,
+            ArrayList<String> filterFieldValues, String fieldOfInterest, int range) {
+        return getFieldValuesList(searchForField(filterFieldName, filterFieldValues, range), fieldOfInterest);
+    }
+
+    /**
+     *
+     * @param filterFieldName
+     * @param filterFieldValue
+     * @param fieldOfInterest
+     * @param range
+     * @return
+     */
+    public ArrayList<String> searchFilteredValueField(String filterFieldName,
+            String filterFieldValue, String fieldOfInterest, int range) {
+        return getFieldValuesList(searchForField(filterFieldName, filterFieldValue, range), fieldOfInterest);
+    }
+
+    /**
+     *
+     * @return
+     */
     public int getIndexSizes() {
         try {
             Directory dir = new SimpleFSDirectory(new File(indexPath));
@@ -84,5 +177,68 @@ public abstract class IndexManager {
             ex.printStackTrace();
             return -1;
         }
+    }
+
+    /**
+     *
+     * @param indexPath
+     * @throws IOException
+     */
+    public void setReader(String indexPath) throws IOException {
+        Directory dir = new SimpleFSDirectory(new File(indexPath));
+
+        ir = DirectoryReader.open(dir);
+        searcher = new IndexSearcher(ir);
+    }
+
+    /**
+     *
+     * @param term
+     * @param field
+     * @return
+     */
+    public ScoreDoc[] searchTermInAField(String term, String field) {
+        TermQuery t = new TermQuery(new Term(field, term));
+        BooleanQuery query = new BooleanQuery();
+        query.add(t, BooleanClause.Occur.MUST);
+        try {
+            TopDocs hits = searcher.search(query, 1000000);
+            ScoreDoc[] scoreDocs = hits.scoreDocs;
+
+            return scoreDocs;
+
+        } catch (IOException ex) {
+            Logger.getLogger(IndexManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return null;
+    }
+
+    /**
+     *
+     * @param term1
+     * @param field1
+     * @param term2
+     * @param field2
+     * @return
+     */
+    public ScoreDoc[] searchTwoTermsInAField(String term1, String field1, String term2, String field2) {
+        TermQuery t1 = new TermQuery(new Term(field1, term1));
+        TermQuery t2 = new TermQuery(new Term(field2, term2));
+        BooleanQuery query = new BooleanQuery();
+        query.add(t1, BooleanClause.Occur.MUST);
+        query.add(t2, BooleanClause.Occur.MUST);
+        
+        try {
+            TopDocs hits = searcher.search(query, 1000000);
+            ScoreDoc[] scoreDocs = hits.scoreDocs;
+            
+            return scoreDocs;
+
+        } catch (IOException ex) {
+            Logger.getLogger(IndexManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return null;
     }
 }

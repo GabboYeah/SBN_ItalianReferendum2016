@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
 import org.apache.commons.lang3.ArrayUtils;
-import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities.TweetWord;
+import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities.TweetTerm;
 
 /**
  *
@@ -17,7 +17,14 @@ import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entiti
  */
 public class Kmeans {
 
-    public static int[] computeKmeans(ArrayList<TweetWord> wordsInfo, int k, int maxIt) {
+    /**
+     *
+     * @param wordsInfo
+     * @param k
+     * @param maxIt
+     * @return
+     */
+    public static int[] computeKmeans(ArrayList<TweetTerm> wordsInfo, int k, int maxIt) {
 
         if (k < 2) {
             throw new IllegalArgumentException("Invalid number of Clusters: " + k);
@@ -57,14 +64,14 @@ public class Kmeans {
 
     }
 
-    private static double[][] getData(ArrayList<TweetWord> wordsInfo) {
+    private static double[][] getData(ArrayList<TweetTerm> wordsInfo) {
 
         int n = wordsInfo.size();
         int m = wordsInfo.get(0).getTimeSeries().length;
         double[][] data = new double[n][m];
 
         int i = 0;
-        for (TweetWord elem : wordsInfo) {
+        for (TweetTerm elem : wordsInfo) {
 
             data[i] = elem.getBinaryRep();
             i++;

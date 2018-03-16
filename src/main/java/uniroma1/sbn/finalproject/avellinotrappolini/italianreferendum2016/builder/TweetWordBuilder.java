@@ -10,7 +10,7 @@ import net.seninp.jmotif.sax.SAXException;
 import net.seninp.jmotif.sax.SAXProcessor;
 import net.seninp.jmotif.sax.alphabet.NormalAlphabet;
 import net.seninp.jmotif.sax.datastructure.SAXRecords;
-import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities.TweetWord;
+import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities.TweetTerm;
 
 /**
  *
@@ -22,6 +22,11 @@ public class TweetWordBuilder {
     double nThreshold;
     NormalAlphabet na;
 
+    /**
+     *
+     * @param alphabetSize
+     * @param nThreshold
+     */
     public TweetWordBuilder(int alphabetSize, double nThreshold) {
         this.alphabetSize = alphabetSize;
         this.nThreshold = nThreshold;
@@ -30,10 +35,19 @@ public class TweetWordBuilder {
     }
     SAXProcessor sp;
 
-    public TweetWord build(String word, double[] timeSeries, int frequency) throws SAXException {
+    /**
+     *
+     * @param word
+     * @param type
+     * @param timeSeries
+     * @param frequency
+     * @return
+     * @throws SAXException
+     */
+    public TweetTerm build(String word, String type, double[] timeSeries, int frequency) throws SAXException {
         SAXRecords res = sp.ts2saxByChunking(timeSeries, timeSeries.length, na.getCuts(alphabetSize), nThreshold);
         String sax = res.getSAXString("");
         //System.out.println(word + ", " + frequency + ", " + sax + ", " + Arrays.toString(timeSeries));
-        return new TweetWord(word, frequency, sax, timeSeries);
+        return new TweetTerm(word, type, frequency, sax, timeSeries);
     }
 }

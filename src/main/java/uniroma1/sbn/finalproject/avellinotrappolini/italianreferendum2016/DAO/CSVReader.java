@@ -21,11 +21,22 @@ public class CSVReader {
     private String delimiter;
     private String path;
 
+    /**
+     *
+     * @param delimiter
+     * @param path
+     */
     public CSVReader(String delimiter, String path) {
         this.delimiter = delimiter;
         this.path = path;
     }
     
+    /**
+     *
+     * @return
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
     public ArrayList<String[]> readCSV() throws FileNotFoundException, IOException{
         br = new BufferedReader(new FileReader(path));
 
