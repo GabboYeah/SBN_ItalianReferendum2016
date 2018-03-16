@@ -138,7 +138,7 @@ public class TweetsIndexBuilder extends IndexBuilder {
                         mentionedPeople += user.getText() + " ";
                     }
 
-                    this.mentioned.setStringValue(mentionedPeople.toLowerCase());
+                    this.mentioned.setStringValue(mentionedPeople);
 
                     String hashtags = "";
                     for (HashtagEntity hashtag : sw.getStatus().getHashtagEntities()) {

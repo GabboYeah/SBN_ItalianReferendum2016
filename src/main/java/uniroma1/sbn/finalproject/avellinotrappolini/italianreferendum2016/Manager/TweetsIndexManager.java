@@ -202,14 +202,12 @@ public class TweetsIndexManager extends IndexManager {
 
         ScoreDoc[] scoreDocs = searchTermInAField(term, field);
 
-        ArrayList<Integer> invertedList = new ArrayList<Integer>();
         try {
             for (ScoreDoc sd : scoreDocs) {
                 int i;
 
                 i = (int) ((Long.parseLong(ir.document(sd.doc).get("date")) - min) / stepSize);
 
-                invertedList.add(sd.doc);
                 wordValues[i]++;
             }
         } catch (IOException ex) {

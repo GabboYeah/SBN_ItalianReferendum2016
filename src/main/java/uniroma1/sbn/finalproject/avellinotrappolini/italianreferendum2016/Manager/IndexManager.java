@@ -24,6 +24,8 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.search.TotalHitCountCollector;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
+import org.apache.lucene.util.BytesRef;
+import org.apache.lucene.util.NumericUtils;
 
 /**
  *
@@ -79,7 +81,14 @@ public abstract class IndexManager {
         try {
             this.setReader(this.indexPath);
 
-            Query q = new TermQuery(new Term(fieldName, fieldValue));
+            Query q;
+            if(fieldName.equals("userId") || fieldName.equals("date")){
+                BytesRef ref = new BytesRef();
+                NumericUtils.longToPrefixCoded(Long.parseLong(fieldValue), 0, ref);
+                q = new TermQuery(new Term(fieldName, ref));
+            }else
+                q = new TermQuery(new Term(fieldName, fieldValue));
+            
             TopDocs top = searcher.search(q, range);
             ScoreDoc[] hits = top.scoreDocs;
 
@@ -198,10 +207,12 @@ public abstract class IndexManager {
      * @return
      */
     public ScoreDoc[] searchTermInAField(String term, String field) {
-        TermQuery t = new TermQuery(new Term(field, term));
-        BooleanQuery query = new BooleanQuery();
-        query.add(t, BooleanClause.Occur.MUST);
         try {
+            setReader(this.indexPath);
+            TermQuery t = new TermQuery(new Term(field, term));
+            BooleanQuery query = new BooleanQuery();
+            query.add(t, BooleanClause.Occur.MUST);
+
             TopDocs hits = searcher.search(query, 1000000);
             ScoreDoc[] scoreDocs = hits.scoreDocs;
 
@@ -228,12 +239,30 @@ public abstract class IndexManager {
         BooleanQuery query = new BooleanQuery();
         query.add(t1, BooleanClause.Occur.MUST);
         query.add(t2, BooleanClause.Occur.MUST);
-        
+
         try {
             TopDocs hits = searcher.search(query, 1000000);
             ScoreDoc[] scoreDocs = hits.scoreDocs;
-            
+
             return scoreDocs;
+
+        } catch (IOException ex) {
+            Logger.getLogger(IndexManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return null;
+    }
+
+    public ArrayList<Document> getAllDocs() {
+        try {
+            setReader(this.indexPath);
+            ArrayList<Document> results = new ArrayList<Document>();
+
+            for (int i = 0; i < ir.numDocs(); i++) {
+                results.add(ir.document(i));
+            }
+
+            return results;
 
         } catch (IOException ex) {
             Logger.getLogger(IndexManager.class.getName()).log(Level.SEVERE, null, ex);
