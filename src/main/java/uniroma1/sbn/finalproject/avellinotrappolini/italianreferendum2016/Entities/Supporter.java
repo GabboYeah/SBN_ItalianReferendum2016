@@ -10,29 +10,29 @@ package uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entit
  * @author Gabriele
  */
 public class Supporter {
+
     private String userId;
+    private String name;
     private int yesPolsMentioned;
     private int noPolsMentioned;
-    private int yesTermsUsed;
-    private int noTermsUsed;
+    private int yesCostructionsUsed;
+    private int noCostructionsUsed;
     private int yesExpressionsUsed;
     private int noExpressionsUsed;
     private Boolean isAYesPol;
     private Boolean isANoPol;
 
-    public Supporter() {
-    }
-
-    public Supporter(String userId, int yesPolsMentioned, int noPolsMentioned, int yesTermsUsed, int noTermsUsed, int yesExpressionsUsed, int noExpressionsUsed, Boolean isAYesPol, Boolean isANoPol) {
+    public Supporter(String userId, String name) {
         this.userId = userId;
-        this.yesPolsMentioned = yesPolsMentioned;
-        this.noPolsMentioned = noPolsMentioned;
-        this.yesTermsUsed = yesTermsUsed;
-        this.noTermsUsed = noTermsUsed;
-        this.yesExpressionsUsed = yesExpressionsUsed;
-        this.noExpressionsUsed = noExpressionsUsed;
-        this.isAYesPol = isAYesPol;
-        this.isANoPol = isANoPol;
+        this.name = name;
+        this.yesPolsMentioned = 0;
+        this.noPolsMentioned = 0;
+        this.yesCostructionsUsed =0;
+        this.noCostructionsUsed = 0;
+        this.yesExpressionsUsed = 0;
+        this.noExpressionsUsed = 0;
+        this.isAYesPol = Boolean.FALSE;
+        this.isANoPol = Boolean.FALSE;
     }
 
     public String getUserId() {
@@ -47,12 +47,12 @@ public class Supporter {
         return noPolsMentioned;
     }
 
-    public int getYesTermsUsed() {
-        return yesTermsUsed;
+    public int getYesCostructionsUsed() {
+        return yesCostructionsUsed;
     }
 
-    public int getNoTermsUsed() {
-        return noTermsUsed;
+    public int getNoCostructionsUsed() {
+        return noCostructionsUsed;
     }
 
     public int getYesExpressionsUsed() {
@@ -70,6 +70,40 @@ public class Supporter {
     public Boolean getIsANoPol() {
         return isANoPol;
     }
-    
-    
+
+    public String getName() {
+        return name;
+    }
+
+    public void setYesPolsMentioned(int yesPolsMentioned) {
+        this.yesPolsMentioned = yesPolsMentioned;
+    }
+
+    public void setNoPolsMentioned(int noPolsMentioned) {
+        this.noPolsMentioned = noPolsMentioned;
+    }
+
+    public void setYesCostructionsUsed(int yesCostructionsUsed) {
+        this.yesCostructionsUsed = yesCostructionsUsed;
+    }
+
+    public void setNoCostructionsUsed(int noCostructionsUsed) {
+        this.noCostructionsUsed = noCostructionsUsed;
+    }
+
+    public void setYesExpressionsUsed(int yesExpressionsUsed) {
+        this.yesExpressionsUsed = yesExpressionsUsed;
+    }
+
+    public void setNoExpressionsUsed(int noExpressionsUsed) {
+        this.noExpressionsUsed = noExpressionsUsed;
+    }
+
+    public void setIsAYesPol(Boolean isAYesPol) {
+        this.isAYesPol = isAYesPol;
+    }
+
+    public void setIsANoPol(Boolean isANoPol) {
+        this.isANoPol = isANoPol;
+    }
 }

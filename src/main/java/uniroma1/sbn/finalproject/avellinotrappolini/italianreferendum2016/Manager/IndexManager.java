@@ -82,13 +82,14 @@ public abstract class IndexManager {
             this.setReader(this.indexPath);
 
             Query q;
-            if(fieldName.equals("userId") || fieldName.equals("date")){
+            if (fieldName.equals("userId") || fieldName.equals("date")) {
                 BytesRef ref = new BytesRef();
                 NumericUtils.longToPrefixCoded(Long.parseLong(fieldValue), 0, ref);
                 q = new TermQuery(new Term(fieldName, ref));
-            }else
+            } else {
                 q = new TermQuery(new Term(fieldName, fieldValue));
-            
+            }
+
             TopDocs top = searcher.search(q, range);
             ScoreDoc[] hits = top.scoreDocs;
 
@@ -242,6 +243,26 @@ public abstract class IndexManager {
 
         try {
             TopDocs hits = searcher.search(query, 1000000);
+            ScoreDoc[] scoreDocs = hits.scoreDocs;
+
+            return scoreDocs;
+
+        } catch (IOException ex) {
+            Logger.getLogger(IndexManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return null;
+    }
+
+    public ScoreDoc[] searchTermsInAField(ArrayList<String> terms, String field) {
+
+        BooleanQuery query = new BooleanQuery();
+        for (String term : terms) {
+            query.add(new TermQuery(new Term(field, term)), BooleanClause.Occur.SHOULD);
+        }
+
+        try {
+            TopDocs hits = searcher.search(query, 10000000);
             ScoreDoc[] scoreDocs = hits.scoreDocs;
 
             return scoreDocs;

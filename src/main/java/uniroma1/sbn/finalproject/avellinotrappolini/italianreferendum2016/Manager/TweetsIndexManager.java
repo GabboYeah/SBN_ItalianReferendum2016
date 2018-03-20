@@ -21,14 +21,18 @@ import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.Fields;
 import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.MultiFields;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
+import org.apache.lucene.search.BooleanClause;
+import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.NumericRangeQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
+import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
@@ -165,7 +169,7 @@ public class TweetsIndexManager extends IndexManager {
                     double[] wordValues = getTermTimeSeries(word, rel, stepSize);
 
                     TweetTerm tw = twb.build(word, rel, wordValues, (int) freq);
-                    
+
                     //System.out.println(tw.getSaxRep().matches("a+b+a*b*a*"));
                     if (tw.getSaxRep().matches(regex)) {
                         relWords.add(tw);
@@ -215,5 +219,35 @@ public class TweetsIndexManager extends IndexManager {
         }
 
         return wordValues;
+    }
+
+    public ScoreDoc[] searchORANDCondInAField(ArrayList<ArrayList<String>> compList) {
+
+        BooleanQuery query = new BooleanQuery();
+        for (ArrayList<String> comp : compList) {
+            BooleanQuery compQuery = new BooleanQuery();
+
+            for (String term : comp) {
+                if (term.startsWith("#")) {
+                    compQuery.add(new TermQuery(new Term("hashtags", term)), BooleanClause.Occur.MUST);
+                } else {
+                    compQuery.add(new TermQuery(new Term("tweetText", term)), BooleanClause.Occur.MUST);
+                }
+            }
+
+            query.add(compQuery, BooleanClause.Occur.SHOULD);
+        }
+
+        try {
+            TopDocs hits = searcher.search(query, 10000000);
+            ScoreDoc[] scoreDocs = hits.scoreDocs;
+
+            return scoreDocs;
+
+        } catch (IOException ex) {
+            Logger.getLogger(IndexManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return null;
     }
 }

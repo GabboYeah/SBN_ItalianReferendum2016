@@ -70,8 +70,7 @@ import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Factor
 public class Application {
 
     public static void main(String[] args) {
-        Path dir = Paths.get("output/relWords.json");
-        if (!Files.exists(dir)) {
+        if (!Files.exists(Paths.get("output/relWords.json")) || !Files.exists(Paths.get("output/relComps.json")) || !Files.exists(Paths.get("output/relCores.json"))) {
             part0();
         }
         part1();
@@ -160,6 +159,12 @@ public class Application {
 //        frame.setContentPane(plot);
 //        frame.setVisible(true);  
         HashMap<String, ArrayList<String>> relWords = new HashMap<String, ArrayList<String>>();
+        HashMap<String, ArrayList<ArrayList<String>>> relComps = new HashMap<String, ArrayList<ArrayList<String>>>();
+        HashMap<String, ArrayList<ArrayList<String>>> relCores = new HashMap<String, ArrayList<ArrayList<String>>>();
+        relComps.put("yes", new ArrayList<ArrayList<String>>());
+        relComps.put("no", new ArrayList<ArrayList<String>>());
+        relCores.put("yes", new ArrayList<ArrayList<String>>());
+        relCores.put("no", new ArrayList<ArrayList<String>>());
 
         long timeInterval = 43200000L;
         String regex = "a+b+a*b*a*";
@@ -191,12 +196,13 @@ public class Application {
             }
 
             System.out.println(cg.getWords(coreList));
+            relCores.get("yes").add(cg.getWords(coreList));
 
             System.out.println("---> Comps:");
             Set<Set<Integer>> comps = cg.getComps();
             for (Set<Integer> comp : comps) {
                 ArrayList<Integer> compElems = new ArrayList<Integer>();
-                System.out.println("+++ corrispective time series: +++");
+                System.out.println("+++ respective time series: +++");
                 for (int elem : comp) {
                     compElems.add(elem);
                     String nodeName = cg.nodeMapper.getNode(elem);
@@ -206,7 +212,10 @@ public class Application {
                         System.out.println(nodeName + "- text: " + Arrays.toString(yesTim.getTermTimeSeries(nodeName, "tweetText", timeInterval)));
                     }
                 }
+                
                 System.out.println("comp = " + cg.getWords(compElems));
+                relComps.get("yes").add(cg.getWords(compElems));
+                
                 for (String word : cg.getWords(compElems)) {
                     representativeYesWordsList.add(word);
                 }
@@ -225,14 +234,16 @@ public class Application {
             }
 
             System.out.println(cg.getWords(coreList));
+            relCores.get("no").add(cg.getWords(coreList));
 
             System.out.println("---> Comps:");
             Set<Set<Integer>> comps = cg.getComps();
+            ArrayList<Integer> compElems = new ArrayList<Integer>();
             for (Set<Integer> comp : comps) {
-                ArrayList<Integer> compElem = new ArrayList<Integer>();
-                System.out.println("+++ corrispective time series: +++");
+                compElems = new ArrayList<Integer>();
+                System.out.println("+++ respective time series: +++");
                 for (int elem : comp) {
-                    compElem.add(elem);
+                    compElems.add(elem);
                     String nodeName = cg.nodeMapper.getNode(elem);
                     if (nodeName.startsWith("#")) {
                         System.out.println(nodeName + ": " + Arrays.toString(noTim.getTermTimeSeries(nodeName, "hashtags", timeInterval)));
@@ -240,9 +251,10 @@ public class Application {
                         System.out.println(nodeName + ": " + Arrays.toString(noTim.getTermTimeSeries(nodeName, "tweetText", timeInterval)));
                     }
                 }
-                System.out.println("comp = " + cg.getWords(compElem));
+                System.out.println("comp = " + cg.getWords(compElems));
+                relComps.get("no").add(cg.getWords(compElems));
 
-                for (String word : cg.getWords(compElem)) {
+                for (String word : cg.getWords(compElems)) {
                     if (representativeYesWordsList.contains(word)) {
                         int flag = representativeYesWordsList.indexOf(word);
                         representativeYesWordsList.remove(flag);
@@ -260,12 +272,15 @@ public class Application {
         ObjectMapper mapper = new ObjectMapper();
         try {
             mapper.writeValue(new File("output/relWords.json"), relWords);
+            mapper.writeValue(new File("output/relComps.json"), relComps);
+            mapper.writeValue(new File("output/relCores.json"), relCores);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public static void part1() {
+
         HashMap<String, Supporter> supporters = new HashMap<String, Supporter>();
 
         Directory dirTweets;
@@ -281,8 +296,8 @@ public class Application {
 
             ArrayList<String> yesWords = representativeWordsMap.get("yes");
             ArrayList<String> noWords = representativeWordsMap.get("no");
-            System.out.println("yesWords: " + yesWords);
-            System.out.println(" noWords: " + noWords);
+//            System.out.println("yesWords: " + yesWords);
+//            System.out.println(" noWords: " + noWords);
 
             PoliticiansIndexManager pim = new PoliticiansIndexManager("index/AllPoliticiansIndex");
 
@@ -300,13 +315,16 @@ public class Application {
             noExp.add("#iovotono");
             noExp.add("#iodicono");
 
-            supporters = sf.generate(yesPols, yesWords, yesExp, noPols, noWords, noExp);
+            //supporters = sf.generate(yesPols, yesWords, yesExp, noPols, noWords, noExp);
+            //sf.generate(yesPols, yesWords, yesExp, noPols, noWords, noExp);
             
+            sf.generateCoreByCore(yesExp, noExp, "output/relComps.json");
+            sf.generateTermByTerm(yesExp, noExp, "output/relWords.json");
             ObjectMapper jsonMapper = new ObjectMapper();
 
             File file = new File("output/supporters.json");
             // Serialize Java object info JSON file.
-            
+
             jsonMapper.writeValue(file, supporters);
 
 //            TweetsIndexManager tim = new TweetsIndexManager("index/SupportersTweetsIndex");
