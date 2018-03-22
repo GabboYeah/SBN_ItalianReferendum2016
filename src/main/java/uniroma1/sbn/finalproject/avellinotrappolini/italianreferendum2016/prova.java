@@ -31,6 +31,10 @@ public class prova {
 
     public static void main(String[] args) throws IOException {
 
+        
+        if(new int[0] != null){
+            System.out.println("ciao");
+        }
 //        PoliticiansIndexManager pim = new PoliticiansIndexManager("index/AllPoliticiansIndex");
 //        pim.setReader("index/AllPoliticiansIndex");
 //        ArrayList<Document> docs = pim.searchForField("vote", "no", 10000000);
@@ -43,22 +47,22 @@ public class prova {
 //        }
 //
 //        System.out.println(relDocs);
-        String sourcePath = "input/Official_SBN-ITA-2016-Net.gz";
-        
-        FileInputStream fstream = new FileInputStream(sourcePath);
-        GZIPInputStream gzstream = new GZIPInputStream(fstream);
-        InputStreamReader isr = new InputStreamReader(gzstream, "UTF-8");
-        BufferedReader br = new BufferedReader(isr);
-
-        String line; 
-        
-        NodesMapper<String> nodeMapper = new NodesMapper<String>();
-
-        WeightedUndirectedGraph g = new WeightedUndirectedGraph(5000000);
-
-        while ((line = br.readLine()) != null) {
-            String[] splittedLine = line.split("\t");
-            g.add(nodeMapper.getId(splittedLine[0]), nodeMapper.getId(splittedLine[1]), Integer.parseInt(splittedLine[2]));
-        }
+//        String sourcePath = "input/Official_SBN-ITA-2016-Net.gz";
+//        
+//        FileInputStream fstream = new FileInputStream(sourcePath);
+//        GZIPInputStream gzstream = new GZIPInputStream(fstream);
+//        InputStreamReader isr = new InputStreamReader(gzstream, "UTF-8");
+//        BufferedReader br = new BufferedReader(isr);
+//
+//        String line; 
+//        
+//        NodesMapper<String> nodeMapper = new NodesMapper<String>();
+//
+//        WeightedUndirectedGraph g = new WeightedUndirectedGraph(5000000);
+//
+//        while ((line = br.readLine()) != null) {
+//            String[] splittedLine = line.split("\t");
+//            g.add(nodeMapper.getId(splittedLine[0]), nodeMapper.getId(splittedLine[1]), Integer.parseInt(splittedLine[2]));
+//        }
     }
 }

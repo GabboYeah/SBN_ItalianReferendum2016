@@ -322,9 +322,8 @@ public class Application {
 //                nodeIds.add(nodeMapper.getId(splittedLine[1]));
 //            }
 //            
-//            System.out.println(nodeIds.size());
-
-            WeightedDirectedGraph g = new WeightedDirectedGraph(500000 + 1);
+//            System.out.println(nodeIds.size()); //450193
+            WeightedDirectedGraph g = new WeightedDirectedGraph(450193 + 1);
 
             while ((line = br.readLine()) != null) {
                 String[] splittedLine = line.split("\t");
@@ -336,42 +335,36 @@ public class Application {
 
             int i = 0;
             for (String node : nodes) {
-                ids[i] = nodeMapper.getId(node);
-                ids2.add(nodeMapper.getId(node));
-                i++;
+                if (nodeMapper.getId(node) < 450193) {
+                    ids[i] = nodeMapper.getId(node);
+                    ids2.add(nodeMapper.getId(node));
+                    i++;
+                }
             }
 
+            System.out.println("CIAO!!!");
             int worker = (int) (Runtime.getRuntime().availableProcessors());
 
             WeightedDirectedGraph sg = SubGraph.extract(g, ids, worker);
 
-            System.out.println(sg.getVertex().length + " = " + nodes.size() + "? " + (sg.getVertex().length == nodes.size()));
-            System.out.println(Arrays.toString(sg.getVertex()));
-            
-            for (int id : sg.getVertex()) {
-                if (!ids2.contains(id)) {
-                    System.out.println("Non c'è " + id);
+            System.out.println(sg.getVertex().length + " " + g.size);
+
+            Set<Set<Integer>> comps = ConnectedComponents.rootedConnectedComponents(sg, ids, worker);
+
+            System.out.println("cc fatto.");
+
+            int max = 0;
+            Set<Integer> maxElem = new HashSet<Integer>();
+
+            for (Set<Integer> comp : comps) {
+                if (comp.size() > max) {
+                    max = comp.size();
+                    maxElem = comp;
                 }
             }
-            
-            int[] all = new int[sg.size];
-            for (i = 0; i < sg.size; i++) {
-                all[i] = i;
-            }
 
-            Set<Set<Integer>> comps = ConnectedComponents.rootedConnectedComponents(sg, all, worker);
-            
-//            System.out.println("---> Comps:");
-//            for (Set<Integer> comp : comps) {
-//                ArrayList<Integer> compElem = new ArrayList<Integer>();
-//                ArrayList<Long> compElemName = new ArrayList<Long>();
-//                for (int elem : comp) {
-//                    compElem.add(elem);
-//                    compElemName.add(nodeMapper.getNode(elem));
-//                }
-//                System.out.println("comp = " + compElemName);
-//            }
-//            System.out.println("");
+            System.out.println(maxElem.size() + " " + Arrays.toString(maxElem.toArray(new Integer[maxElem.size()])));
+            System.out.println(comps.size());
 
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
