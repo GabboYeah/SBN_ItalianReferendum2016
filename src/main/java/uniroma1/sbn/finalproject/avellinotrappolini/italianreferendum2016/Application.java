@@ -9,7 +9,9 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.stilo.g.algo.ConnectedComponents;
 import it.stilo.g.algo.CoreDecomposition;
+import it.stilo.g.algo.SubGraph;
 import it.stilo.g.structures.Core;
+import it.stilo.g.structures.WeightedDirectedGraph;
 import it.stilo.g.structures.WeightedUndirectedGraph;
 import it.stilo.g.util.GraphReader;
 import it.stilo.g.util.NodesMapper;
@@ -61,7 +63,7 @@ import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entiti
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.PoliticiansIndexManager;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.TweetsIndexManager;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Factory.ClusterGraphFactory;
-import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Factory.SupporterFactory;
+import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.SupportersIndexManager;
 
 /**
  *
@@ -212,10 +214,10 @@ public class Application {
                         System.out.println(nodeName + "- text: " + Arrays.toString(yesTim.getTermTimeSeries(nodeName, "tweetText", timeInterval)));
                     }
                 }
-                
+
                 System.out.println("comp = " + cg.getWords(compElems));
                 relComps.get("yes").add(cg.getWords(compElems));
-                
+
                 for (String word : cg.getWords(compElems)) {
                     representativeYesWordsList.add(word);
                 }
@@ -281,30 +283,7 @@ public class Application {
 
     public static void part1() {
 
-        HashMap<String, Supporter> supporters = new HashMap<String, Supporter>();
-
-        Directory dirTweets;
-
         try {
-            //Import json
-            ObjectMapper mapper = new ObjectMapper();
-
-            HashMap<String, ArrayList<String>> representativeWordsMap
-                    = mapper.readValue(new File("output/relWords.json"),
-                            new TypeReference<HashMap<String, ArrayList<String>>>() {
-                    });
-
-            ArrayList<String> yesWords = representativeWordsMap.get("yes");
-            ArrayList<String> noWords = representativeWordsMap.get("no");
-//            System.out.println("yesWords: " + yesWords);
-//            System.out.println(" noWords: " + noWords);
-
-            PoliticiansIndexManager pim = new PoliticiansIndexManager("index/AllPoliticiansIndex");
-
-            ArrayList<String> yesPols = pim.getFieldValuesList(pim.searchForField("vote", "si", 100000000), "screenName");
-            ArrayList<String> noPols = pim.getFieldValuesList(pim.searchForField("vote", "no", 100000000), "screenName");
-
-            SupporterFactory sf = new SupporterFactory();
 
             ArrayList<String> yesExp = new ArrayList<String>();
             ArrayList<String> noExp = new ArrayList<String>();
@@ -315,180 +294,73 @@ public class Application {
             noExp.add("#iovotono");
             noExp.add("#iodicono");
 
-            //supporters = sf.generate(yesPols, yesWords, yesExp, noPols, noWords, noExp);
-            //sf.generate(yesPols, yesWords, yesExp, noPols, noWords, noExp);
-            
-            sf.generateCoreByCore(yesExp, noExp, "output/relComps.json");
-            sf.generateTermByTerm(yesExp, noExp, "output/relWords.json");
-            ObjectMapper jsonMapper = new ObjectMapper();
+            SupportersIndexManager sim = new SupportersIndexManager("index/SupportersIndex", yesExp, noExp);
+            Path dir = Paths.get("index/SupportersIndex");
+            if (!Files.exists(dir)) {
+                sim.create("output/relComps.json");
+            } else {
+                System.out.println(dir.toString() + ": Index already created!");
+            }
 
-            File file = new File("output/supporters.json");
-            // Serialize Java object info JSON file.
+            ArrayList<String> nodes = sim.getFieldValuesList(sim.getAllDocs(), "userId");
 
-            jsonMapper.writeValue(file, supporters);
+            String sourcePath = "input/Official_SBN-ITA-2016-Net.gz";
 
-//            TweetsIndexManager tim = new TweetsIndexManager("index/SupportersTweetsIndex");
-//            TweetsIndexManager tweetsTim = new TweetsIndexManager("index/AllTweetsIndex");
-//            PoliticiansIndexManager pim = new PoliticiansIndexManager("index/AllPoliticiansIndex");
+            FileInputStream fstream = new FileInputStream(sourcePath);
+            GZIPInputStream gzstream = new GZIPInputStream(fstream);
+            InputStreamReader isr = new InputStreamReader(gzstream, "UTF-8");
+            BufferedReader br = new BufferedReader(isr);
+
+            String line;
+            NodesMapper<String> nodeMapper = new NodesMapper<String>();
+
+//            HashSet<Integer> nodeIds = new HashSet<Integer>();
 //
-//            dirTweets = new SimpleFSDirectory(new File("index/AllTweetsIndex"));
-//            IndexReader irTweets = DirectoryReader.open(dirTweets);
-//            for (int i = 0; i < irTweets.numDocs(); i++) {
-//                Document doc = irTweets.document(i);
-//                
-//                System.out.println(i + " di " + irTweets.numDocs());
-//                
-//                if (!supporters.contains(doc.get("userId"))) {
-//                    ArrayList<String> mentionedPeople = new ArrayList<String> (Arrays.asList(doc.getValues("mentioned")));
-//
-//                    if (pim.searchForField("screenName", mentionedPeople, 1000000).size() > 0) {
-//                        supporters.add(doc.get("userId"));
-//                        break;
-//                    }
-//                    
-//                    for (String word : yesWords) {
-//                        if (doc.get("tweetText").contains(word)
-//                                || doc.get("hashtags").contains(word)
-//                                || supporters.contains(doc.get("userId"))) {
-//                            supporters.add(doc.get("userId"));
-//                            break;
-//                        }
-//                    }
-//
-//                    for (String word : noWords) {
-//                        if (doc.get("tweetText").contains(word)
-//                                || doc.get("hashtags").contains(word)
-//                                || supporters.contains(doc.get("userId"))) {
-//                            supporters.add(doc.get("userId"));
-//                            break;
-//                        }
-//                    }
-//                }
-//
-//            }
-//            System.out.println("---> NO WORDS:");
-//            for (String word : noWords) {
-//                System.out.println("------> " + word);
-//                if (word.startsWith("#")) {
-//                    ScoreDoc[] relDocs = tweetsTim.searchTermInAField(word, "hashtags");
-//
-//                    for (ScoreDoc doc : relDocs) {
-//                        supporters.add(irTweets.document(doc.doc).get("userId"));
-//                        System.out.println("---\n" + irTweets.document(doc.doc).get("hashtags") + "\n\n");
-//                    }
-//                } else {
-//                    ScoreDoc[] relDocs = tweetsTim.searchTermInAField(word, "tweetText");
-//
-//                    for (ScoreDoc doc : relDocs) {
-//                        supporters.add(irTweets.document(doc.doc).get("userId"));
-//                        System.out.println("---\n" + irTweets.document(doc.doc).get("tweetText") + "\n\n");
-//                    }
-//                }
-//            }
-//
-//            System.out.println("---> YES WORDS:");
-//            for (String word : yesWords) {
-//                System.out.println("------> " + word);
-//                if (word.startsWith("#")) {
-//                    ScoreDoc[] relDocs = tweetsTim.searchTermInAField(word, "hashtags");
-//
-//                    for (ScoreDoc doc : relDocs) {
-//                        supporters.add(irTweets.document(doc.doc).get("userId"));
-//                        System.out.println("---\n" + irTweets.document(doc.doc).get("hashtags") + "\n\n");
-//                    }
-//                } else {
-//                    ScoreDoc[] relDocs = tweetsTim.searchTermInAField(word, "tweetText");
-//
-//                    for (ScoreDoc doc : relDocs) {
-//                        supporters.add(irTweets.document(doc.doc).get("userId"));
-//                        System.out.println("---\n" + irTweets.document(doc.doc).get("tweetText") + "\n\n");
-//                    }
-//                }
-//            }
-//            ArrayList<Document> allPolDocs = pim.getAllDocs();
-//            ArrayList<String> allPols = pim.getFieldValuesList(allPolDocs, "screenName");
-//
-//            System.out.println("---> POLS:");
-//            for (String pol : allPols) {
-//                System.out.println("------> " + pol);
-//                ScoreDoc[] relDocs = tweetsTim.searchTermInAField(pol, "mentioned");
-//
-//                for (ScoreDoc doc : relDocs) {
-//                    supporters.add(irTweets.document(doc.doc).get("userId"));
-//                    System.out.println(irTweets.document(doc.doc).get("mentioned"));
-//                }
-//            }
-//
-//            System.out.println(Arrays.toString(supporters.toArray()));
-//            System.out.println(supporters.size());
-//
-//            ArrayList<String> supportersList = new ArrayList<String>();
-//            supportersList.addAll(supporters);
-//            tim.create("index/AllTweetsIndex", "userId", supportersList);
-//        } catch (IOException ex) {
-//            System.out.println("---> Problems with source files: IOException <---");
-//            ex.printStackTrace();
-//        }
-//
-//        String sourcePath = "input/Official_SBN-ITA-2016-Net.gz";
-//        Path path = Paths.get(sourcePath);
-//        try {
-//            FileInputStream fstream = new FileInputStream(path.toString());
-//            GZIPInputStream gzstream = new GZIPInputStream(fstream);
-//            InputStreamReader isr = new InputStreamReader(gzstream, "UTF-8");
-//            BufferedReader br = new BufferedReader(isr);
-//
-//            NodesMapper<Long> nodeMapper = new NodesMapper<Long>();
-//
-//            String line;
-//        HashSet<Integer> nodeIds = new HashSet<Integer>();
-//        
-//        while ((line = br.readLine()) != null) {
-//            String[] splittedLine = line.split("\t");
-//            nodeIds.add(nodeMapper.getId(Long.parseLong(splittedLine[0])));
-//            nodeIds.add(nodeMapper.getId(Long.parseLong(splittedLine[1])));
-//        }
-//        
-//        br.close();
-//        isr.close();
-//        gzstream.close();
-//        fstream.close();
-//        
-//        fstream = new FileInputStream(path.toString());
-//        gzstream = new GZIPInputStream(fstream);
-//        isr = new InputStreamReader(gzstream, "UTF-8");
-//        br = new BufferedReader(isr);
-//        
-//        br = new BufferedReader(isr);
-//        
-//        WeightedUndirectedGraph g = new WeightedUndirectedGraph(nodeIds.size()+1);
-//        
-//        while ((line = br.readLine()) != null) {
-//            String[] splittedLine = line.split("\t");
-//            g.add(nodeMapper.getId(Long.parseLong(splittedLine[0])), nodeMapper.getId(Long.parseLong(splittedLine[1])), Integer.parseInt(splittedLine[2]));
-//        }
-//            WeightedUndirectedGraph g = new WeightedUndirectedGraph(450193 + 1);
 //            while ((line = br.readLine()) != null) {
 //                String[] splittedLine = line.split("\t");
-//                if (supporters.contains(splittedLine[0]) && supporters.contains(splittedLine[0])) {
-////                    nodeMapper.getId(Long.parseLong(splittedLine[0]));
-////                    nodeMapper.getId(Long.parseLong(splittedLine[1]));
-//                    g.add(nodeMapper.getId(Long.parseLong(splittedLine[0])), nodeMapper.getId(Long.parseLong(splittedLine[1])), Integer.parseInt(splittedLine[2]));
-//                }
+//                nodeIds.add(nodeMapper.getId(splittedLine[0]));
+//                nodeIds.add(nodeMapper.getId(splittedLine[1]));
 //            }
-//            System.out.println(supporters.size());
-//            System.out.println((g.size));
-//            System.out.println(Arrays.deepToString(g.out));
-//
-//            int worker = (int) (Runtime.getRuntime().availableProcessors());
-//
-//            int[] all = new int[g.size];
-//            for (int i = 0; i < g.size; i++) {
-//                all[i] = i;
-//            }
-//
-//            Set<Set<Integer>> comps = ConnectedComponents.rootedConnectedComponents(g, all, worker);
 //            
+//            System.out.println(nodeIds.size());
+
+            WeightedDirectedGraph g = new WeightedDirectedGraph(500000 + 1);
+
+            while ((line = br.readLine()) != null) {
+                String[] splittedLine = line.split("\t");
+                g.add(nodeMapper.getId(splittedLine[0]), nodeMapper.getId(splittedLine[1]), Integer.parseInt(splittedLine[2]));
+            }
+
+            int[] ids = new int[nodes.size()];
+            ArrayList<Integer> ids2 = new ArrayList<Integer>();
+
+            int i = 0;
+            for (String node : nodes) {
+                ids[i] = nodeMapper.getId(node);
+                ids2.add(nodeMapper.getId(node));
+                i++;
+            }
+
+            int worker = (int) (Runtime.getRuntime().availableProcessors());
+
+            WeightedDirectedGraph sg = SubGraph.extract(g, ids, worker);
+
+            System.out.println(sg.getVertex().length + " = " + nodes.size() + "? " + (sg.getVertex().length == nodes.size()));
+            System.out.println(Arrays.toString(sg.getVertex()));
+            
+            for (int id : sg.getVertex()) {
+                if (!ids2.contains(id)) {
+                    System.out.println("Non c'è " + id);
+                }
+            }
+            
+            int[] all = new int[sg.size];
+            for (i = 0; i < sg.size; i++) {
+                all[i] = i;
+            }
+
+            Set<Set<Integer>> comps = ConnectedComponents.rootedConnectedComponents(sg, all, worker);
+            
 //            System.out.println("---> Comps:");
 //            for (Set<Integer> comp : comps) {
 //                ArrayList<Integer> compElem = new ArrayList<Integer>();
@@ -500,10 +372,12 @@ public class Application {
 //                System.out.println("comp = " + compElemName);
 //            }
 //            System.out.println("");
-//
+
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
+            Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (InterruptedException ex) {
             Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

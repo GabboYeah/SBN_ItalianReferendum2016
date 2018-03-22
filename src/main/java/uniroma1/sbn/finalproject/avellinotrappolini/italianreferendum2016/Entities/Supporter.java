@@ -106,4 +106,10 @@ public class Supporter {
     public void setIsANoPol(Boolean isANoPol) {
         this.isANoPol = isANoPol;
     }
+    
+    public String toString(){
+        return (name + " " + isANoPol + " " + isAYesPol + " " + noCostructionsUsed + " " + 
+                yesCostructionsUsed + " " + noExpressionsUsed + " " + yesExpressionsUsed + " " + 
+                noPolsMentioned + " " + yesPolsMentioned);
+    }
 }
