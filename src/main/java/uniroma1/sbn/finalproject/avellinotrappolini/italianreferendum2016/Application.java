@@ -323,6 +323,7 @@ public class Application {
 //            }
 //            
 //            System.out.println(nodeIds.size()); //450193
+
             WeightedDirectedGraph g = new WeightedDirectedGraph(450193 + 1);
 
             while ((line = br.readLine()) != null) {
@@ -331,23 +332,40 @@ public class Application {
             }
 
             int[] ids = new int[nodes.size()];
-            ArrayList<Integer> ids2 = new ArrayList<Integer>();
 
             int i = 0;
             for (String node : nodes) {
                 if (nodeMapper.getId(node) < 450193) {
                     ids[i] = nodeMapper.getId(node);
-                    ids2.add(nodeMapper.getId(node));
                     i++;
                 }
             }
+            ids = Arrays.copyOf(ids, i);
 
-            System.out.println("CIAO!!!");
             int worker = (int) (Runtime.getRuntime().availableProcessors());
 
             WeightedDirectedGraph sg = SubGraph.extract(g, ids, worker);
 
-            System.out.println(sg.getVertex().length + " " + g.size);
+            Set<Integer> n = new HashSet<>();
+            for (i = 0; i < sg.in.length; i++) {
+                if (sg.in[i] != null) {
+                    for (int j = 0; j < sg.in[i].length; j++) {
+                        n.add(sg.in[i][j]);
+                    }
+                }
+
+            }
+
+            for (i = 0; i < sg.out.length; i++) {
+                if (sg.out[i] != null) {
+                    for (int j = 0; j < sg.out[i].length; j++) {
+                        n.add(sg.out[i][j]);
+                    }
+                }
+
+            }
+
+            System.out.println(n.size() + " " + ids.length + " " + g.size + " " + sg.size);
 
             Set<Set<Integer>> comps = ConnectedComponents.rootedConnectedComponents(sg, ids, worker);
 
@@ -362,9 +380,27 @@ public class Application {
                     maxElem = comp;
                 }
             }
-
+            
+            ArrayList<ArrayList<Integer>> finalCC = new ArrayList<ArrayList<Integer>>();
+            for(Set<Integer> comp : comps){
+                ArrayList<Integer> appoggio = new ArrayList<Integer>();
+                appoggio.addAll(comp);
+                Collections.sort(appoggio);
+                int flag = 0;
+                for(ArrayList<Integer> CC : finalCC){
+                    if(appoggio.equals(CC)){
+                        flag = 1;
+                        break;
+                    }
+                }
+                if(flag == 0){
+                    finalCC.add(appoggio);
+                }
+            }
+            for(ArrayList<Integer> c : finalCC)
+            System.out.println(c);
+            
             System.out.println(maxElem.size() + " " + Arrays.toString(maxElem.toArray(new Integer[maxElem.size()])));
-            System.out.println(comps.size());
 
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
