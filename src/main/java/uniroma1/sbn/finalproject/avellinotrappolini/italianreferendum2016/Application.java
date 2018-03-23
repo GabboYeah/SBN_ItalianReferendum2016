@@ -9,8 +9,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.stilo.g.algo.ConnectedComponents;
 import it.stilo.g.algo.CoreDecomposition;
+import it.stilo.g.algo.HubnessAuthority;
+import it.stilo.g.algo.KppNeg;
 import it.stilo.g.algo.SubGraph;
 import it.stilo.g.structures.Core;
+import it.stilo.g.structures.DoubleValues;
 import it.stilo.g.structures.WeightedDirectedGraph;
 import it.stilo.g.structures.WeightedUndirectedGraph;
 import it.stilo.g.util.GraphReader;
@@ -19,8 +22,11 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import static java.lang.Float.max;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,6 +36,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -73,12 +80,12 @@ public class Application {
 
     public static void main(String[] args) {
         if (!Files.exists(Paths.get("output/relWords.json")) || !Files.exists(Paths.get("output/relComps.json")) || !Files.exists(Paths.get("output/relCores.json"))) {
-            part0();
+            temporalAnalysis();
         }
         part1();
     }
 
-    public static void part0() {
+    public static void temporalAnalysis() {
 
         TweetsIndexManager tim = new TweetsIndexManager("index/AllTweetsIndex");
         Path dir = Paths.get("index/AllTweetsIndex");
@@ -302,17 +309,23 @@ public class Application {
                 System.out.println(dir.toString() + ": Index already created!");
             }
 
-            ArrayList<String> nodes = sim.getFieldValuesList(sim.getAllDocs(), "userId");
+            ArrayList<String> nodes = sim.getFieldValuesList(sim.getAllDocs(), "id");
 
-            String sourcePath = "input/Official_SBN-ITA-2016-Net.gz";
+            int worker = (int) (Runtime.getRuntime().availableProcessors());
+            WeightedDirectedGraph ccsg;
+            NodesMapper<String> nodeMapper;
 
-            FileInputStream fstream = new FileInputStream(sourcePath);
-            GZIPInputStream gzstream = new GZIPInputStream(fstream);
-            InputStreamReader isr = new InputStreamReader(gzstream, "UTF-8");
-            BufferedReader br = new BufferedReader(isr);
+            dir = Paths.get("output/ccsg.txt");
+            if (!Files.exists(dir)) {
+                String sourcePath = "input/Official_SBN-ITA-2016-Net.gz";
 
-            String line;
-            NodesMapper<String> nodeMapper = new NodesMapper<String>();
+                FileInputStream fstream = new FileInputStream(sourcePath);
+                GZIPInputStream gzstream = new GZIPInputStream(fstream);
+                InputStreamReader isr = new InputStreamReader(gzstream, "UTF-8");
+                BufferedReader br = new BufferedReader(isr);
+
+                String line;
+                nodeMapper = new NodesMapper<String>();
 
 //            HashSet<Integer> nodeIds = new HashSet<Integer>();
 //
@@ -323,84 +336,275 @@ public class Application {
 //            }
 //            
 //            System.out.println(nodeIds.size()); //450193
+                WeightedDirectedGraph g = new WeightedDirectedGraph(450193 + 1);
 
-            WeightedDirectedGraph g = new WeightedDirectedGraph(450193 + 1);
-
-            while ((line = br.readLine()) != null) {
-                String[] splittedLine = line.split("\t");
-                g.add(nodeMapper.getId(splittedLine[0]), nodeMapper.getId(splittedLine[1]), Integer.parseInt(splittedLine[2]));
-            }
-
-            int[] ids = new int[nodes.size()];
-
-            int i = 0;
-            for (String node : nodes) {
-                if (nodeMapper.getId(node) < 450193) {
-                    ids[i] = nodeMapper.getId(node);
-                    i++;
+                while ((line = br.readLine()) != null) {
+                    String[] splittedLine = line.split("\t");
+                    g.add(nodeMapper.getId(splittedLine[0]), nodeMapper.getId(splittedLine[1]), Integer.parseInt(splittedLine[2]));
                 }
-            }
-            ids = Arrays.copyOf(ids, i);
 
-            int worker = (int) (Runtime.getRuntime().availableProcessors());
+                int[] ids = new int[nodes.size()];
 
-            WeightedDirectedGraph sg = SubGraph.extract(g, ids, worker);
+                int i = 0;
+                for (String node : nodes) {
+                    if (nodeMapper.getId(node) < 450193) {
+                        ids[i] = nodeMapper.getId(node);
+                        i++;
+                    }
+                }
+                ids = Arrays.copyOf(ids, i);
 
-            Set<Integer> n = new HashSet<>();
-            for (i = 0; i < sg.in.length; i++) {
-                if (sg.in[i] != null) {
-                    for (int j = 0; j < sg.in[i].length; j++) {
-                        n.add(sg.in[i][j]);
+                WeightedDirectedGraph sg = SubGraph.extract(g, ids, worker);
+
+                System.out.println(ids.length + " " + g.size + " " + sg.size);
+
+                Set<Set<Integer>> comps = ConnectedComponents.rootedConnectedComponents(sg, ids, worker);
+
+                System.out.println("cc fatto.");
+
+                int max = 0;
+                Set<Integer> maxElem = new HashSet<Integer>();
+
+                for (Set<Integer> comp : comps) {
+                    if (comp.size() > max) {
+                        max = comp.size();
+                        maxElem = comp;
                     }
                 }
 
-            }
+                System.out.println(maxElem.size() + " " + Arrays.toString(maxElem.toArray(new Integer[maxElem.size()])));
 
-            for (i = 0; i < sg.out.length; i++) {
-                if (sg.out[i] != null) {
-                    for (int j = 0; j < sg.out[i].length; j++) {
-                        n.add(sg.out[i][j]);
-                    }
+                Integer[] maxElemArray = maxElem.toArray(new Integer[maxElem.size()]);
+                int[] ccids = new int[maxElemArray.length];
+
+                for (i = 0; i < maxElemArray.length; i++) {
+                    ccids[i] = maxElemArray[i].intValue();
                 }
 
+                ccsg = SubGraph.extract(sg, ccids, worker);
+
+                FileWriter fileWriter = new FileWriter("output/ccsg.txt");
+                PrintWriter printWriter = new PrintWriter(fileWriter);
+
+                for (i = 0; i < ccsg.out.length; i++) {
+                    if (ccsg.out[i] != null) {
+                        for (int j = 0; j < ccsg.out[i].length; j++) {
+                            printWriter.print(nodeMapper.getNode(i) + " " + nodeMapper.getNode(ccsg.out[i][j]) + " 1\n");
+                        }
+                    }
+                }
+                printWriter.close();
+            } else {
+
+                System.out.println(dir.toString() + ": Index already created!");
+                FileReader fr = new FileReader("output/ccsg.txt");
+                BufferedReader br = new BufferedReader(fr);
+
+                ccsg = new WeightedDirectedGraph(46648 + 1);
+                nodeMapper = new NodesMapper<String>();
+
+                String line;
+
+                while ((line = br.readLine()) != null) {
+                    String[] splittedLine = line.split(" ");
+                    ccsg.add(nodeMapper.getId(splittedLine[0]), nodeMapper.getId(splittedLine[1]), Integer.parseInt(splittedLine[2]));
+                }
             }
 
-            System.out.println(n.size() + " " + ids.length + " " + g.size + " " + sg.size);
+            ArrayList<ArrayList<DoubleValues>> hitsResult = HubnessAuthority.compute(ccsg, 0.00001, worker);
+            ArrayList<DoubleValues> authorities = hitsResult.get(0);
 
-            Set<Set<Integer>> comps = ConnectedComponents.rootedConnectedComponents(sg, ids, worker);
+            FileWriter fileWriter = new FileWriter("output/authorities.txt");
+            PrintWriter printWriter = new PrintWriter(fileWriter);
 
-            System.out.println("cc fatto.");
+            for (DoubleValues authority : authorities) {
+                printWriter.print(authority.index + " " + authority.value + "\n");
+            }
+            printWriter.close();
 
-            int max = 0;
-            Set<Integer> maxElem = new HashSet<Integer>();
+            ArrayList<String> yesAuthorities = new ArrayList<>();
+            ArrayList<String> noAuthorities = new ArrayList<>();
+            ArrayList<String> unclassifiedAuthorities = new ArrayList<>();
 
-            for (Set<Integer> comp : comps) {
-                if (comp.size() > max) {
-                    max = comp.size();
-                    maxElem = comp;
+            for (int i = 0; i < (1000 < authorities.size() ? 1000 : authorities.size()); i++) {
+                Document supporter = sim.searchForField("id", nodeMapper.getNode(authorities.get(i).index), 10).get(0);
+                if (Integer.parseInt(supporter.get("isAYesPol")) == 1) {
+                    yesAuthorities.add(supporter.get("id"));
+                } else if (Integer.parseInt(supporter.get("isANoPol")) == 1) {
+                    noAuthorities.add(supporter.get("id"));
+                } else {
+                    float yesScore = (float) (Integer.parseInt(supporter.get("yesPolsMentioned"))
+                            + 0.5 * Integer.parseInt(supporter.get("yesConstructionsUsed"))
+                            + 3 * Integer.parseInt(supporter.get("yesExpressionsUsed")));
+
+                    float noScore = (float) (Integer.parseInt(supporter.get("noPolsMentioned"))
+                            + 0.5 * Integer.parseInt(supporter.get("noConstructionsUsed"))
+                            + 3 * Integer.parseInt(supporter.get("noExpressionsUsed")));
+
+                    float finalScore = yesScore / noScore;
+                    if (finalScore > 1.45) {
+                        yesAuthorities.add(supporter.get("id"));
+                    } else if (finalScore < 0.7) {
+                        noAuthorities.add(supporter.get("id"));
+                    } else {
+                        unclassifiedAuthorities.add(supporter.get("id"));
+                    }
+                }
+            }
+
+            System.out.println("YES AUTHORITIES: " + yesAuthorities.size());
+            System.out.println("NO AUTHORITIES: " + noAuthorities.size());
+            System.out.println("UCLASSIFIED AUTHORITIES: " + unclassifiedAuthorities.size());
+
+            fileWriter = new FileWriter("output/yesAuthorities.txt");
+            printWriter = new PrintWriter(fileWriter);
+
+            for (String authority : yesAuthorities) {
+                printWriter.print(authority + "\n");
+            }
+            printWriter.close();
+
+            fileWriter = new FileWriter("output/noAuthorities.txt");
+            printWriter = new PrintWriter(fileWriter);
+
+            for (String authority : noAuthorities) {
+                printWriter.print(authority + "\n");
+            }
+            printWriter.close();
+
+            fileWriter = new FileWriter("output/unclassifiedAuthorities.txt");
+            printWriter = new PrintWriter(fileWriter);
+
+            for (String authority : unclassifiedAuthorities) {
+                printWriter.print(authority + "\n");
+            }
+            printWriter.close();
+
+            ArrayList<String> yesHubs = new ArrayList<>();
+            ArrayList<String> noHubs = new ArrayList<>();
+
+            ArrayList<DoubleValues> hubs = hitsResult.get(1);
+
+            fileWriter = new FileWriter("output/hubs.txt");
+            printWriter = new PrintWriter(fileWriter);
+
+            for (DoubleValues hub : hubs) {
+                printWriter.print(hub.index + " " + hub.value + "\n");
+            }
+            printWriter.close();
+
+            for (int i = 0; i < hubs.size(); i++) {
+                Document supporter = sim.searchForField("id", nodeMapper.getNode(hubs.get(i).index), 10).get(0);
+                if (Integer.parseInt(supporter.get("isAYesPol")) == 1) {
+                    yesHubs.add(supporter.get("id"));
+                } else if (Integer.parseInt(supporter.get("isANoPol")) == 1) {
+                    noHubs.add(supporter.get("id"));
+                } else {
+                    float yesScore = (float) (Integer.parseInt(supporter.get("yesPolsMentioned"))
+                            + 0.5 * Integer.parseInt(supporter.get("yesConstructionsUsed"))
+                            + 3 * Integer.parseInt(supporter.get("yesExpressionsUsed")));
+
+                    float noScore = (float) (Integer.parseInt(supporter.get("noPolsMentioned"))
+                            + 0.5 * Integer.parseInt(supporter.get("noConstructionsUsed"))
+                            + 3 * Integer.parseInt(supporter.get("noExpressionsUsed")));
+
+                    float finalScore = yesScore / noScore;
+                    if (finalScore > 1.45 && (yesScore + noScore) == 8) {
+                        yesHubs.add(supporter.get("id"));
+                    } else if (finalScore < 0.7 && (yesScore + noScore) == 8) {
+                        noHubs.add(supporter.get("id"));
+                    }
+                }
+                if ((yesHubs.size() >= 500) && (noHubs.size() >= 500)) {
+                    break;
+                }
+            }
+
+            List<String> yesHubsList = yesHubs.subList(0, (500 < yesHubs.size() ? 500 : yesHubs.size()));
+            List<String> noHubsList = noHubs.subList(0, (500 < noHubs.size() ? 500 : noHubs.size()));
+
+            fileWriter = new FileWriter("output/yesHubs.txt");
+            printWriter = new PrintWriter(fileWriter);
+
+            for (String hub : yesHubs) {
+                printWriter.print(hub + "\n");
+            }
+            printWriter.close();
+
+            fileWriter = new FileWriter("output/noHubs.txt");
+            printWriter = new PrintWriter(fileWriter);
+
+            for (String hub : noHubs) {
+                printWriter.print(hub + "\n");
+            }
+            printWriter.close();
+
+            System.out.println();
+            System.out.println("YES HUBS: " + yesHubsList.size());
+            System.out.println("NO HUBS: " + noHubsList.size());
+
+            List<DoubleValues> brokers = KppNeg.searchBroker(ccsg, ccsg.getVertex(), worker);
+
+            fileWriter = new FileWriter("output/brokers.txt");
+            printWriter = new PrintWriter(fileWriter);
+
+            for (DoubleValues broker : brokers) {
+                printWriter.print(broker.index + " " + broker.value + "\n");
+            }
+            printWriter.close();
+
+            ArrayList<String> yesBrokers = new ArrayList<>();
+            ArrayList<String> noBrokers = new ArrayList<>();
+
+            for (int i = 0; i < brokers.size(); i++) {
+                Document supporter = sim.searchForField("id", nodeMapper.getNode(brokers.get(i).index), 10).get(0);
+                if (Integer.parseInt(supporter.get("isAYesPol")) == 1) {
+                    yesBrokers.add(supporter.get("id"));
+                } else if (Integer.parseInt(supporter.get("isANoPol")) == 1) {
+                    noBrokers.add(supporter.get("id"));
+                } else {
+                    float yesScore = (float) (Integer.parseInt(supporter.get("yesPolsMentioned"))
+                            + 0.5 * Integer.parseInt(supporter.get("yesConstructionsUsed"))
+                            + 3 * Integer.parseInt(supporter.get("yesExpressionsUsed")));
+
+                    float noScore = (float) (Integer.parseInt(supporter.get("noPolsMentioned"))
+                            + 0.5 * Integer.parseInt(supporter.get("noConstructionsUsed"))
+                            + 3 * Integer.parseInt(supporter.get("noExpressionsUsed")));
+
+                    float finalScore = yesScore / noScore;
+                    if (finalScore > 1.45 && (yesScore + noScore) == 8) {
+                        yesBrokers.add(supporter.get("id"));
+                    } else if (finalScore < 0.7 && (yesScore + noScore) == 8) {
+                        noBrokers.add(supporter.get("id"));
+                    }
+                }
+                if ((yesBrokers.size() >= 500) && (noBrokers.size() >= 500)) {
+                    break;
                 }
             }
             
-            ArrayList<ArrayList<Integer>> finalCC = new ArrayList<ArrayList<Integer>>();
-            for(Set<Integer> comp : comps){
-                ArrayList<Integer> appoggio = new ArrayList<Integer>();
-                appoggio.addAll(comp);
-                Collections.sort(appoggio);
-                int flag = 0;
-                for(ArrayList<Integer> CC : finalCC){
-                    if(appoggio.equals(CC)){
-                        flag = 1;
-                        break;
-                    }
-                }
-                if(flag == 0){
-                    finalCC.add(appoggio);
-                }
+            fileWriter = new FileWriter("output/yesBrokers.txt");
+            printWriter = new PrintWriter(fileWriter);
+
+            for (String broker : yesBrokers) {
+                printWriter.print(broker + "\n");
             }
-            for(ArrayList<Integer> c : finalCC)
-            System.out.println(c);
+            printWriter.close();
             
-            System.out.println(maxElem.size() + " " + Arrays.toString(maxElem.toArray(new Integer[maxElem.size()])));
+            fileWriter = new FileWriter("output/noBrokers.txt");
+            printWriter = new PrintWriter(fileWriter);
+
+            for (String broker : noBrokers) {
+                printWriter.print(broker + "\n");
+            }
+            printWriter.close();
+
+            List<String> yesBrokersList = yesBrokers.subList(0, (500 < yesBrokers.size() ? 500 : yesBrokers.size()));
+            List<String> noBrokersList = noBrokers.subList(0, (500 < noBrokers.size() ? 500 : noBrokers.size()));
+
+            System.out.println();
+            System.out.println("YES Brokers: " + yesBrokersList.size());
+            System.out.println("NO Brokers: " + noBrokersList.size());
 
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);

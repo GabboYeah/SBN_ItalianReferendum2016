@@ -11,7 +11,7 @@ package uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entit
  */
 public class Supporter {
 
-    private String userId;
+    private String id;
     private String name;
     private int yesPolsMentioned;
     private int noPolsMentioned;
@@ -22,12 +22,12 @@ public class Supporter {
     private Boolean isAYesPol;
     private Boolean isANoPol;
 
-    public Supporter(String userId, String name) {
-        this.userId = userId;
+    public Supporter(String id, String name) {
+        this.id = id;
         this.name = name;
         this.yesPolsMentioned = 0;
         this.noPolsMentioned = 0;
-        this.yesCostructionsUsed =0;
+        this.yesCostructionsUsed = 0;
         this.noCostructionsUsed = 0;
         this.yesExpressionsUsed = 0;
         this.noExpressionsUsed = 0;
@@ -35,8 +35,8 @@ public class Supporter {
         this.isANoPol = Boolean.FALSE;
     }
 
-    public String getUserId() {
-        return userId;
+    public String getId() {
+        return id;
     }
 
     public int getYesPolsMentioned() {
@@ -108,7 +108,7 @@ public class Supporter {
     }
     
     public String toString(){
-        return (name + " " + isANoPol + " " + isAYesPol + " " + noCostructionsUsed + " " + 
+        return (name + " " + id + " " + isANoPol + " " + isAYesPol + " " + noCostructionsUsed + " " + 
                 yesCostructionsUsed + " " + noExpressionsUsed + " " + yesExpressionsUsed + " " + 
                 noPolsMentioned + " " + yesPolsMentioned);
     }

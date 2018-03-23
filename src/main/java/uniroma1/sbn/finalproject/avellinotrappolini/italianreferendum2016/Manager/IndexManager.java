@@ -82,7 +82,7 @@ public abstract class IndexManager {
             this.setReader(this.indexPath);
 
             Query q;
-            if (fieldName.equals("userId") || fieldName.equals("date")) {
+            if (fieldName.equals("date")) {
                 BytesRef ref = new BytesRef();
                 NumericUtils.longToPrefixCoded(Long.parseLong(fieldValue), 0, ref);
                 q = new TermQuery(new Term(fieldName, ref));

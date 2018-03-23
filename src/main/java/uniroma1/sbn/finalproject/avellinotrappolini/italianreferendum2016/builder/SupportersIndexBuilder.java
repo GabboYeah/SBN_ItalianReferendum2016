@@ -38,7 +38,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
 
     private Document supporter;
     private StringField name;
-    private StringField userId;
+    private StringField id;
     private IntField yesPolsMentioned;
     private IntField noPolsMentioned;
     private IntField yesConstructionsUsed;
@@ -58,10 +58,10 @@ public class SupportersIndexBuilder extends IndexBuilder {
 
         this.supporter = new Document();
         this.name = new StringField("name", "", Field.Store.YES);
-        this.userId = new StringField("userId", "", Field.Store.YES);
+        this.id = new StringField("id", "", Field.Store.YES);
         this.yesPolsMentioned = new IntField("yesPolsMentioned", 0, Field.Store.YES);
         this.noPolsMentioned = new IntField("noPolsMentioned", 0, Field.Store.YES);
-        this.yesConstructionsUsed = new IntField("yesConstructionUsed", 0, Field.Store.YES);
+        this.yesConstructionsUsed = new IntField("yesConstructionsUsed", 0, Field.Store.YES);
         this.noConstructionsUsed = new IntField("noConstructionsUsed", 0, Field.Store.YES);
         this.yesExpressionsUsed = new IntField("yesExpressionsUsed", 0, Field.Store.YES);
         this.noExpressionsUsed = new IntField("noExpressionsUsed", 0, Field.Store.YES);
@@ -69,7 +69,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
         this.isANoPol = new IntField("isANoPol", 0, Field.Store.YES);
 
         this.supporter.add(this.name);
-        this.supporter.add(this.userId);
+        this.supporter.add(this.id);
         this.supporter.add(this.yesPolsMentioned);
         this.supporter.add(this.noPolsMentioned);
         this.supporter.add(this.yesConstructionsUsed);
@@ -90,9 +90,10 @@ public class SupportersIndexBuilder extends IndexBuilder {
         for (String key : supporters.keySet()) {
             
             Supporter s = supporters.get(key);
-
+            //System.out.println(s.toString());
+            
             this.name.setStringValue(s.getName());
-            this.userId.setStringValue(s.getUserId());
+            this.id.setStringValue(s.getId());
             this.yesPolsMentioned.setIntValue(s.getYesPolsMentioned());
             this.noPolsMentioned.setIntValue(s.getNoPolsMentioned());
             this.yesConstructionsUsed.setIntValue(s.getYesCostructionsUsed());
@@ -136,14 +137,14 @@ public class SupportersIndexBuilder extends IndexBuilder {
             for (ScoreDoc doc : results) {
                 Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("screenName"));
                 supporter.setIsAYesPol(Boolean.TRUE);
-                supporters.put(supporter.getUserId(), supporter);
+                supporters.put(supporter.getId(), supporter);
             }
 
             results = tim.searchTermsInAField(noPols, "screenName");
             for (ScoreDoc doc : results) {
                 Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("screenName"));
                 supporter.setIsANoPol(Boolean.TRUE);
-                supporters.put(supporter.getUserId(), supporter);
+                supporters.put(supporter.getId(), supporter);
             }
 
             System.out.println("Total supporters: " + supporters.size());
@@ -160,7 +161,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
                 } else {
                     Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("screenName"));
                     supporter.setYesPolsMentioned(1);
-                    supporters.put(supporter.getUserId(), supporter);
+                    supporters.put(supporter.getId(), supporter);
                 }
             }
 
@@ -173,7 +174,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
                 } else {
                     Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("screenName"));
                     supporter.setNoPolsMentioned(1);
-                    supporters.put(supporter.getUserId(), supporter);
+                    supporters.put(supporter.getId(), supporter);
                 }
             }
 
@@ -211,7 +212,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
                     } else {
                         Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("screenName"));
                         supporter.setYesCostructionsUsed(1);
-                        supporters.put(supporter.getUserId(), supporter);
+                        supporters.put(supporter.getId(), supporter);
                     }
                 }
 
@@ -234,7 +235,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
                     } else {
                         Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("screenName"));
                         supporter.setNoCostructionsUsed(1);
-                        supporters.put(supporter.getUserId(), supporter);
+                        supporters.put(supporter.getId(), supporter);
                     }
                 }
             } else {
@@ -257,7 +258,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
                     } else {
                         Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("screenName"));
                         supporter.setYesCostructionsUsed(1);
-                        supporters.put(supporter.getUserId(), supporter);
+                        supporters.put(supporter.getId(), supporter);
                     }
                 }
 
@@ -270,7 +271,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
                     } else {
                         Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("screenName"));
                         supporter.setNoCostructionsUsed(1);
-                        supporters.put(supporter.getUserId(), supporter);
+                        supporters.put(supporter.getId(), supporter);
                     }
                 }
             }
@@ -289,7 +290,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
                 } else {
                     Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("screenName"));
                     supporter.setYesExpressionsUsed(1);
-                    supporters.put(supporter.getUserId(), supporter);
+                    supporters.put(supporter.getId(), supporter);
                 }
             }
 
@@ -302,7 +303,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
                 } else {
                     Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("screenName"));
                     supporter.setNoExpressionsUsed(1);
-                    supporters.put(supporter.getUserId(), supporter);
+                    supporters.put(supporter.getId(), supporter);
                 }
             }
 
