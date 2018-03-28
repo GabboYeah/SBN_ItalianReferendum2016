@@ -63,6 +63,7 @@ import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.math.plot.Plot2DPanel;
 import twitter4j.TwitterException;
+import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.AnalyticalTools.ComunityLPA;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.AnalyticalTools.Kmeans;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities.TweetTerm;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities.ClusterGraph;
@@ -82,7 +83,8 @@ public class Application {
         if (!Files.exists(Paths.get("output/relWords.json")) || !Files.exists(Paths.get("output/relComps.json")) || !Files.exists(Paths.get("output/relCores.json"))) {
             temporalAnalysis();
         }
-        part1();
+        //part1();
+        part2();
     }
 
     public static void temporalAnalysis() {
@@ -460,7 +462,7 @@ public class Application {
             printWriter = new PrintWriter(fileWriter);
 
             for (String authority : yesAuthorities) {
-                printWriter.print(authority + "\n");
+                printWriter.print(authority + " " + nodeMapper.getId(authority) + "\n");
             }
             printWriter.close();
 
@@ -468,7 +470,7 @@ public class Application {
             printWriter = new PrintWriter(fileWriter);
 
             for (String authority : noAuthorities) {
-                printWriter.print(authority + "\n");
+                printWriter.print(authority + " " + nodeMapper.getId(authority) + "\n");
             }
             printWriter.close();
 
@@ -476,7 +478,7 @@ public class Application {
             printWriter = new PrintWriter(fileWriter);
 
             for (String authority : unclassifiedAuthorities) {
-                printWriter.print(authority + "\n");
+                printWriter.print(authority + " " + nodeMapper.getId(authority) + "\n");
             }
             printWriter.close();
 
@@ -582,7 +584,7 @@ public class Application {
                     break;
                 }
             }
-            
+
             fileWriter = new FileWriter("output/yesBrokers.txt");
             printWriter = new PrintWriter(fileWriter);
 
@@ -590,7 +592,7 @@ public class Application {
                 printWriter.print(broker + "\n");
             }
             printWriter.close();
-            
+
             fileWriter = new FileWriter("output/noBrokers.txt");
             printWriter = new PrintWriter(fileWriter);
 
@@ -613,5 +615,69 @@ public class Application {
         } catch (InterruptedException ex) {
             Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    private static void part2() {
+        String sourcePath = "input/Official_SBN-ITA-2016-Net.gz";
+
+        FileInputStream fstream;
+        try {
+            fstream = new FileInputStream(sourcePath);
+            GZIPInputStream gzstream = new GZIPInputStream(fstream);
+            InputStreamReader isr = new InputStreamReader(gzstream, "UTF-8");
+            BufferedReader br = new BufferedReader(isr);
+
+            String line;
+            NodesMapper<String> nodeMapper = new NodesMapper<String>();
+
+            WeightedDirectedGraph g = new WeightedDirectedGraph(450193 + 1);
+
+            while ((line = br.readLine()) != null) {
+                String[] splittedLine = line.split("\t");
+                g.add(nodeMapper.getId(splittedLine[0]), nodeMapper.getId(splittedLine[1]), Integer.parseInt(splittedLine[2]));
+            }
+
+            int worker = (int) (Runtime.getRuntime().availableProcessors());
+
+            int[] initLabels = getInitLabel("output/yesAuthorities.txt", "output/noAuthorities.txt", g);
+            int[] labels = ComunityLPA.compute(g, 1.0d, worker, initLabels);
+            System.out.println(Arrays.toString(labels));
+
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private static int[] getInitLabel(String yesPath, String noPath, WeightedDirectedGraph g) {
+        int[] initLabel = new int[g.size];
+
+        FileReader fr;
+        try {
+            fr = new FileReader(yesPath);
+            BufferedReader br = new BufferedReader(fr);
+
+            String line;
+
+            while ((line = br.readLine()) != null) {
+                int id = Integer.parseInt(line.split(" ")[1]);
+                initLabel[id] = 1;
+            }
+
+            fr = new FileReader(noPath);
+            br = new BufferedReader(fr);
+
+            while ((line = br.readLine()) != null) {
+                int id = Integer.parseInt(line.split(" ")[1]);
+                initLabel[id] = 2;
+            }
+            return initLabel;
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
     }
 }

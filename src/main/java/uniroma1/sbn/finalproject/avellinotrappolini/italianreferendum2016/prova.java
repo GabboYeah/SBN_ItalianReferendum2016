@@ -22,6 +22,7 @@ import java.util.zip.GZIPInputStream;
 import org.apache.lucene.document.Document;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities.Supporter;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.PoliticiansIndexManager;
+import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.TweetsIndexManager;
 
 /**
  *
@@ -31,9 +32,14 @@ public class prova {
 
     public static void main(String[] args) throws IOException {
 
-        
-        if(new int[0] != null){
-            System.out.println("ciao");
+        TweetsIndexManager tim = new TweetsIndexManager("index/AllTweetsIndex");
+        tim.setReader("index/AllTweetsIndex");
+        ArrayList<Document> x = tim.searchForField("screenName", "salvoaranzulla", 1000000);
+        for(Document doc : x){
+            System.out.println(doc.get("tweetText"));
+            System.out.println(doc.get("hashtags"));
+            System.out.println(doc.get("mentioned"));
+            
         }
 //        PoliticiansIndexManager pim = new PoliticiansIndexManager("index/AllPoliticiansIndex");
 //        pim.setReader("index/AllPoliticiansIndex");
@@ -54,7 +60,7 @@ public class prova {
 //        InputStreamReader isr = new InputStreamReader(gzstream, "UTF-8");
 //        BufferedReader br = new BufferedReader(isr);
 //
-//        String line; 
+//        String line;
 //        
 //        NodesMapper<String> nodeMapper = new NodesMapper<String>();
 //
