@@ -49,6 +49,7 @@ import net.seninp.jmotif.sax.SAXException;
 import net.seninp.jmotif.sax.SAXProcessor;
 import net.seninp.jmotif.sax.alphabet.NormalAlphabet;
 import net.seninp.jmotif.sax.datastructure.SAXRecords;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.IndexReader;
@@ -83,7 +84,7 @@ public class Application {
         if (!Files.exists(Paths.get("output/relWords.json")) || !Files.exists(Paths.get("output/relComps.json")) || !Files.exists(Paths.get("output/relCores.json"))) {
             temporalAnalysis();
         }
-        //part1();
+        part1();
         part2();
     }
 
@@ -360,7 +361,8 @@ public class Application {
 
                 System.out.println(ids.length + " " + g.size + " " + sg.size);
 
-                Set<Set<Integer>> comps = ConnectedComponents.rootedConnectedComponents(sg, ids, worker);
+                Set<Set<Integer>> comps;
+                comps = ConnectedComponents.rootedConnectedComponents(sg, ids, worker);
 
                 System.out.println("cc fatto.");
 
@@ -545,7 +547,60 @@ public class Application {
             System.out.println("YES HUBS: " + yesHubsList.size());
             System.out.println("NO HUBS: " + noHubsList.size());
 
-            List<DoubleValues> brokers = KppNeg.searchBroker(ccsg, ccsg.getVertex(), worker);
+//            int[] degreeInDistribution = new int[ccsg.size];
+//            int[] degreeOutDistribution = new int[ccsg.size];
+//            int[] degreeSumDistribution = new int[ccsg.size];
+//            for (int i = 0; i < ccsg.size; i++) {
+//                if (ccsg.out[i] != null) {
+//                    degreeOutDistribution[i] = ccsg.out[i].length;
+//                } else {
+//                    degreeOutDistribution[i] = 0;
+//                }
+//                if (ccsg.in[i] != null) {
+//                    degreeInDistribution[i] = ccsg.in[i].length;
+//                } else {
+//                    degreeInDistribution[i] = 0;
+//                }
+//                degreeSumDistribution[i] = degreeInDistribution[i] + degreeOutDistribution[i];
+//            }
+//
+//            Arrays.sort(degreeInDistribution);
+//            Arrays.sort(degreeOutDistribution);
+//            Arrays.sort(degreeSumDistribution);
+//
+//            System.out.println("IN DEGREE 1%:  " + degreeInDistribution[(int) ccsg.size / 100]);
+//            System.out.println("OUT DEGREE 1%: " + degreeOutDistribution[(int) ccsg.size / 100]);
+//            System.out.println("SUM DEGREE 1%: " + degreeSumDistribution[(int) ccsg.size / 100]);
+//
+//            System.out.println("-------------------------------------------------------------------------");
+//
+//            System.out.println("IN DEGREE 10%:  " + degreeInDistribution[(int) ccsg.size / 10]);
+//            System.out.println("OUT DEGREE 10%: " + degreeOutDistribution[(int) ccsg.size / 10]);
+//            System.out.println("SUM DEGREE 10%: " + degreeSumDistribution[(int) ccsg.size / 10]);
+//
+//            System.out.println("-------------------------------------------------------------------------");
+//
+//            System.out.println("IN DEGREE 25%:  " + degreeInDistribution[(int) ccsg.size / 4]);
+//            System.out.println("OUT DEGREE 25%: " + degreeOutDistribution[(int) ccsg.size / 4]);
+//            System.out.println("SUM DEGREE 25%: " + degreeSumDistribution[(int) ccsg.size / 4]);
+
+
+            ArrayList<Integer> nodeTresholdALst = new ArrayList<>();
+            for (int i = 0; i < ccsg.size; i++) {
+                if (ccsg.out[i] != null && ccsg.out[i].length > 28) {
+                    if (ccsg.in[i] != null && ccsg.in[i].length > 35) {
+                        nodeTresholdALst.add(i);
+                    }
+                }
+            }
+
+            float nodesRemoved = (float) (ccsg.size - nodeTresholdALst.size()) / ccsg.size;
+            System.out.println("NODES REMOVED: " + nodesRemoved);
+            int[] nodeTresholdLst = ArrayUtils.toPrimitive(nodeTresholdALst.toArray(new Integer[nodeTresholdALst.size()]));
+
+            WeightedDirectedGraph gkpp = SubGraph.extract(ccsg, nodeTresholdLst, worker);
+
+            List<DoubleValues> brokers = KppNeg.searchBroker(gkpp, nodeTresholdLst, worker);
 
             fileWriter = new FileWriter("output/brokers.txt");
             printWriter = new PrintWriter(fileWriter);
