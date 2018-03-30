@@ -5,24 +5,21 @@
  */
 package uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import it.stilo.g.structures.WeightedUndirectedGraph;
-import it.stilo.g.util.NodesMapper;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
+import it.stilo.g.algo.PageRankPI;
+import it.stilo.g.algo.PageRankRW;
+import it.stilo.g.example.ZacharyExample;
+import it.stilo.g.structures.DoubleValues;
+import it.stilo.g.structures.WeightedDirectedGraph;
+import it.stilo.g.util.MemInfo;
+import it.stilo.g.util.ZacharyNetwork;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Random;
-import java.util.zip.GZIPInputStream;
-import org.apache.lucene.document.Document;
-import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities.Supporter;
-import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.PoliticiansIndexManager;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.lucene.search.ScoreDoc;
+import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.AnalyticalTools.ComunityLPA;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager.TweetsIndexManager;
 
 /**
@@ -31,14 +28,21 @@ import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manage
  */
 public class prova {
 
+    protected static final Logger logger = LogManager.getLogger(ZacharyExample.class);
+
     public static void main(String[] args) throws IOException {
-        
-        Random rnd = new Random(123454);
-        
-        for (int i = 0; i < 10; i++) {
-            System.out.println(rnd.nextInt(2));
+
+        TweetsIndexManager tim = new TweetsIndexManager("index/AllTweetsIndex");
+
+        tim.setReader("index/AllTweetsIndex");
+
+        ScoreDoc[] x = tim.searchTermInAField("prodi", "tweetText");
+        for (ScoreDoc y : x) {
+            System.out.println(tim.ir.document(y.doc).get("screenName"));
+            System.out.println(tim.ir.document(y.doc).get("tweetText"));
+            System.out.println(tim.ir.document(y.doc).get("hashtags"));
+            System.out.println("------------------");
         }
-        
 //        TweetsIndexManager tim = new TweetsIndexManager("index/AllTweetsIndex");
 //        tim.setReader("index/AllTweetsIndex");
 //        ArrayList<Document> x = tim.searchForField("screenName", "salvoaranzulla", 1000000);

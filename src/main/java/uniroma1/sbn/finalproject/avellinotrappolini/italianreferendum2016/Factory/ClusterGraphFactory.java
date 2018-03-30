@@ -86,7 +86,7 @@ public class ClusterGraphFactory {
                     String vType = clusterWords.get(j).getType();
                     double vSize = clusterWords.get(j).getFrequency();
 
-                    double intersection = tim.searchTwoTermsInAField(u, uType, v, vType).length;
+                    double intersection = tim.searchTwoTermsInFields(u, uType, v, vType).length;
 
                     double div1 = intersection / uSize;
                     double div2 = intersection / vSize;

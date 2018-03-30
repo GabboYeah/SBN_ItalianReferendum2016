@@ -50,12 +50,10 @@ public class ComunityLPA implements Runnable {
 
             for (int i = chunk; i < g.in.length; i += runner) {
 
-                if (g.in[i] != null) {
+                if (g.in[i] != null && labels[i] == 0) {
 
                     list[j] = i;
                     j++;
-                } else if (g.out[i] == null) {
-                    labels[i] = -1;
                 }
             }
 
@@ -92,6 +90,7 @@ public class ComunityLPA implements Runnable {
                 }
             }
         }
+        //System.out.println("runner n. " + chunk + ", labels = " + Arrays.toString(labels));
         barrier.countDown();
     }
 
@@ -125,6 +124,7 @@ public class ComunityLPA implements Runnable {
         ComunityLPA.rnd = new Random(123454L);
 
         int[] labels = initLabels;
+        //System.out.println(Arrays.toString(initLabels));
         int[] newLabels = labels;
         int iter = 0;
 
@@ -141,8 +141,8 @@ public class ComunityLPA implements Runnable {
 
         do {
             iter++;
-            //System.out.println("ITER N: " + iter);
             labels = newLabels;
+            //System.out.println("ITER N: " + iter + ", labels = " + Arrays.toString(labels));
             newLabels = Arrays.copyOf(labels, labels.length);
             latch = new CountDownLatch(runner);
 
@@ -167,6 +167,7 @@ public class ComunityLPA implements Runnable {
 //            }
 //            
 //            System.out.println(inequality);
+            
         } while (smoothEnd(labels, newLabels, iter, threshold));
 
         ex.shutdown();

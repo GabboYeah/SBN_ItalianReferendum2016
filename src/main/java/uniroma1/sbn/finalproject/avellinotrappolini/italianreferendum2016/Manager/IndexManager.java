@@ -21,87 +21,99 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.TotalHitCountCollector;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
 import org.apache.lucene.util.NumericUtils;
 
 /**
- *
- * @author Gabriele
+ * Abstract class that collect all the methods and attributes that an 
+ * IndexManager needs to have and extends.
+ * 
+ * @author Gabriele Avellino
+ * @author Giovanni Trappolini
  */
 public abstract class IndexManager {
 
     /**
-     *
+     * Relative path to the index physical location.
      */
     public String indexPath;
 
     /**
-     *
+     * Lucene object that allow to interact with the index.
      */
     public IndexReader ir;
 
     /**
-     *
+     * Lucene object that allow to interact with the index.
      */
     public IndexSearcher searcher;
 
     /**
-     *
-     * @param indexPath
+     * Constructor that save the location were the index is or will be created.
+     * @param indexPath relative path of the index location
      */
     public IndexManager(String indexPath) {
         this.indexPath = indexPath;
     }
 
     /**
-     *
-     * @param sourcePath
+     * Create a new index using data stored in sourcePath.
+     * @param sourcePath Relative path to the physical location were are stored data need for index generation
      */
     public abstract void create(String sourcePath);
 
     /**
-     *
-     * @param sourcePath
-     * @param fieldName
-     * @param fieldValues
+     * Create a new index using data stored in an other. In particoular data of a specific field that match specific values.
+     * 
+     * @param sourcePath Relative path to the other index physical location
+     * @param fieldName field name of source index needed for the creation of the new one
+     * @param fieldValues values to match in the field in order to get right data
      */
     public abstract void create(String sourcePath, String fieldName, ArrayList<String> fieldValues);
 
     /**
-     *
-     * @param fieldName
-     * @param fieldValue
-     * @param range
+     * Collect all documents that match the fieldValue for a specific fieldName. Return an ArrayList of matched documents.
+     * 
+     * @param fieldName name of the field where the match has to be verified
+     * @param fieldValue value to match
+     * @param range number of results to return
      * @return
      */
     public ArrayList<Document> searchForField(String fieldName, String fieldValue, int range) {
         try {
+            // Set index params (path, ir and searcher)
             this.setReader(this.indexPath);
-
+                 
             Query q;
+            
+            // if the field is a LongField
             if (fieldName.equals("date")) {
+                //Convert the fieldValue in a ByteRef
                 BytesRef ref = new BytesRef();
                 NumericUtils.longToPrefixCoded(Long.parseLong(fieldValue), 0, ref);
+                // Create the query
                 q = new TermQuery(new Term(fieldName, ref));
             } else {
+                // Create the query
                 q = new TermQuery(new Term(fieldName, fieldValue));
             }
 
+            // Execute the query
             TopDocs top = searcher.search(q, range);
+            // Get query results
             ScoreDoc[] hits = top.scoreDocs;
-
+            
+            // Collect the documents inside the query results
             ArrayList<Document> results = new ArrayList<>();
 
-            Document doc = null;
-
             for (ScoreDoc entry : hits) {
-                doc = searcher.doc(entry.doc);
+                Document doc = searcher.doc(entry.doc);
                 results.add(doc);
             }
-
+            
+            // Return the list of Docs
             return results;
 
         } catch (IOException ex) {
@@ -113,46 +125,50 @@ public abstract class IndexManager {
     }
 
     /**
-     *
-     * @param fieldName
-     * @param fieldValues
-     * @param range
+     * Collect all documents that match the fieldValue for a specific list of fieldNames. Return an ArrayList of matched documents.
+     * @param fieldName name of the field where the match has to be verified
+     * @param fieldValues list of values to match
+     * @param range number of results to return
      * @return
      */
     public ArrayList<Document> searchForField(String fieldName, ArrayList<String> fieldValues, int range) {
 
         ArrayList<Document> results = new ArrayList<>();
-
+        // For each value to match...
         for (String fieldValue : fieldValues) {
+            // ...compute the query and join the results
             results.addAll(searchForField(fieldName, fieldValue, range));
         }
-
+        
+        // Return the list of Docs
         return results;
     }
 
     /**
-     *
-     * @param docs
-     * @param fieldName
-     * @return
+     * Return a list of Strings that represent the value of each document of the list for a specific field.
+     * @param docs List of document to examinate
+     * @param fieldName Field of interest
+     * @return 
      */
     public ArrayList<String> getFieldValuesList(ArrayList<Document> docs, String fieldName) {
         ArrayList<String> results = new ArrayList<String>();
-
+        // For each document...
         for (Document doc : docs) {
+            // ...append the value of fieldName to the output list
             results.add(doc.get(fieldName));
         }
-
+        
+        // return the list of values
         return results;
     }
 
     /**
-     *
-     * @param filterFieldName
-     * @param filterFieldValues
-     * @param fieldOfInterest
-     * @param range
-     * @return
+     * Return the list of a values of a specific field in a collection of documents selected by the match of fieldValues for a specific fieldName. 
+     * @param filterFieldName name of field to use to match documents
+     * @param filterFieldValues list of values to match in the index for a specific field name
+     * @param fieldOfInterest field from which get values
+     * @param range number of results
+     * @return 
      */
     public ArrayList<String> searchFilteredValueField(String filterFieldName,
             ArrayList<String> filterFieldValues, String fieldOfInterest, int range) {
@@ -160,12 +176,12 @@ public abstract class IndexManager {
     }
 
     /**
-     *
-     * @param filterFieldName
-     * @param filterFieldValue
-     * @param fieldOfInterest
-     * @param range
-     * @return
+     * Return the list of a values of a specific field in a collection of documents selected by the match of fieldValues for a specific fieldName. 
+     * @param filterFieldName name of field to use to match documents
+     * @param filterFieldValue value to match in the index for a specific field name
+     * @param fieldOfInterest field from which get values
+     * @param range number of results
+     * @return 
      */
     public ArrayList<String> searchFilteredValueField(String filterFieldName,
             String filterFieldValue, String fieldOfInterest, int range) {
@@ -173,13 +189,15 @@ public abstract class IndexManager {
     }
 
     /**
-     *
+     * Return the size of the index.
      * @return
      */
     public int getIndexSizes() {
         try {
+            // open the index
             Directory dir = new SimpleFSDirectory(new File(indexPath));
             IndexReader ir = DirectoryReader.open(dir);
+            // return the number of docs
             return ir.numDocs();
 
         } catch (IOException ex) {
@@ -190,8 +208,8 @@ public abstract class IndexManager {
     }
 
     /**
-     *
-     * @param indexPath
+     * Set parameters of the index.
+     * @param indexPath relative path of the index
      * @throws IOException
      */
     public void setReader(String indexPath) throws IOException {
@@ -202,21 +220,26 @@ public abstract class IndexManager {
     }
 
     /**
-     *
-     * @param term
-     * @param field
-     * @return
+     * Return all the documents where the term is present in a specific field.
+     * @param term term to search
+     * @param field field in which the term has to been searched
+     * @return 
      */
     public ScoreDoc[] searchTermInAField(String term, String field) {
         try {
+            // Set index params
             setReader(this.indexPath);
+            // Create a new query specifing field and term
             TermQuery t = new TermQuery(new Term(field, term));
             BooleanQuery query = new BooleanQuery();
+            // the term MUST occur in the field
             query.add(t, BooleanClause.Occur.MUST);
-
+            
+            // Execute the query
             TopDocs hits = searcher.search(query, 1000000);
+            
+            // Collect and return the results
             ScoreDoc[] scoreDocs = hits.scoreDocs;
-
             return scoreDocs;
 
         } catch (IOException ex) {
@@ -227,24 +250,29 @@ public abstract class IndexManager {
     }
 
     /**
-     *
-     * @param term1
-     * @param field1
-     * @param term2
-     * @param field2
-     * @return
+     * Return an array of docs were term1 appears in field1 and term2 appears in field2.
+     * @param term1 term to search in field1
+     * @param field1 field in which term1 has to been searched
+     * @param term2 term to search in field2
+     * @param field2 field in which term2 has to been searched
+     * @return 
      */
-    public ScoreDoc[] searchTwoTermsInAField(String term1, String field1, String term2, String field2) {
+    public ScoreDoc[] searchTwoTermsInFields(String term1, String field1, String term2, String field2) {
+        // Create two TermQueries
         TermQuery t1 = new TermQuery(new Term(field1, term1));
         TermQuery t2 = new TermQuery(new Term(field2, term2));
+        
+        // Create a BooleanQuery
         BooleanQuery query = new BooleanQuery();
+        // Both terms MUST appears
         query.add(t1, BooleanClause.Occur.MUST);
         query.add(t2, BooleanClause.Occur.MUST);
 
         try {
+            // Execute the query
             TopDocs hits = searcher.search(query, 1000000);
+            // Collect and return the results
             ScoreDoc[] scoreDocs = hits.scoreDocs;
-
             return scoreDocs;
 
         } catch (IOException ex) {
@@ -254,17 +282,27 @@ public abstract class IndexManager {
         return null;
     }
 
+    /**
+     * Return all documents in which appears at least one term of the list.
+     * @param terms list of terms to match
+     * @param field field in which search terms
+     * @return
+     */
     public ScoreDoc[] searchTermsInAField(ArrayList<String> terms, String field) {
-
+        
+        // Create a BooleanQuery
         BooleanQuery query = new BooleanQuery();
+        // For each term in the list...
         for (String term : terms) {
+            // ...create a TermQuery for it with the Clause SHOULD
             query.add(new TermQuery(new Term(field, term)), BooleanClause.Occur.SHOULD);
         }
 
         try {
+            // Execute the query
             TopDocs hits = searcher.search(query, 10000000);
+            // Collect and return the results
             ScoreDoc[] scoreDocs = hits.scoreDocs;
-
             return scoreDocs;
 
         } catch (IOException ex) {
@@ -274,6 +312,10 @@ public abstract class IndexManager {
         return null;
     }
 
+    /**
+     * Return all the documents of an index in a list.
+     * @return 
+     */
     public ArrayList<Document> getAllDocs() {
         try {
             setReader(this.indexPath);

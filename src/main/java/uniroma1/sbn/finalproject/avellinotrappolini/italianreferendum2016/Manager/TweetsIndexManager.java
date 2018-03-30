@@ -45,7 +45,8 @@ import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builde
 
 /**
  *
- * @author Gabriele
+ * @author Gabriele Avellino
+ * @author Giovanni Trappolini
  */
 public class TweetsIndexManager extends IndexManager {
 

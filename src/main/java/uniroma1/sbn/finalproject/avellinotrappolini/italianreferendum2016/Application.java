@@ -18,6 +18,8 @@ import it.stilo.g.structures.WeightedDirectedGraph;
 import it.stilo.g.structures.WeightedUndirectedGraph;
 import it.stilo.g.util.GraphReader;
 import it.stilo.g.util.NodesMapper;
+import java.awt.Color;
+import java.awt.Font;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,6 +30,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import static java.lang.Float.max;
+import static java.lang.Math.PI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -63,9 +66,11 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.SimpleFSDirectory;
 import org.math.plot.Plot2DPanel;
+import org.math.plot.plotObjects.BaseLabel;
 import twitter4j.TwitterException;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.AnalyticalTools.ComunityLPA;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.AnalyticalTools.Kmeans;
+import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.AnalyticalTools.PlotTool;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities.TweetTerm;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities.ClusterGraph;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities.Supporter;
@@ -76,16 +81,17 @@ import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manage
 
 /**
  *
- * @author Gabriele
+ * @author Gabriele Avellino
+ * @author Giovanni Trappolini
  */
 public class Application {
 
     public static void main(String[] args) {
-        if (!Files.exists(Paths.get("output/relWords.json"))
-                || !Files.exists(Paths.get("output/relComps.json"))
-                || !Files.exists(Paths.get("output/relCores.json"))) {
-            temporalAnalysis();
-        }
+//        if (!Files.exists(Paths.get("output/relWords.json"))
+//                || !Files.exists(Paths.get("output/relComps.json"))
+//                || !Files.exists(Paths.get("output/relCores.json"))) {
+        temporalAnalysis();
+//        }
         if (!Files.exists(Paths.get("output/yesAuthorities.txt"))
                 || !Files.exists(Paths.get("output/noAuthorities.txt"))
                 || !Files.exists(Paths.get("output/yesHubs.txt"))
@@ -99,198 +105,136 @@ public class Application {
     }
 
     public static void temporalAnalysis() {
-
-        TweetsIndexManager tim = new TweetsIndexManager("index/AllTweetsIndex");
-        Path dir = Paths.get("index/AllTweetsIndex");
-        if (!Files.exists(dir)) {
-            tim.create("input/stream");
-        } else {
-            System.out.println(dir.toString() + ": Index already created!");
-        }
-
-        PoliticiansIndexManager pim = new PoliticiansIndexManager("index/AllPoliticiansIndex");
-        dir = Paths.get("index/AllPoliticiansIndex");
-        if (!Files.exists(dir)) {
-            pim.create("input/politicians.csv");
-        } else {
-            System.out.println(dir.toString() + ": Index already created!");
-        }
-
-        ArrayList<Document> yesPoliticians = pim.searchForField("vote", "si", 10000);
-        ArrayList<Document> noPoliticians = pim.searchForField("vote", "no", 10000);
-
-        if (yesPoliticians != null && noPoliticians != null) {
-            System.out.println("YES POLITICIANS: " + yesPoliticians.size());
-            System.out.println("NO POLITICIANS: " + noPoliticians.size());
-            System.out.println("TOT POLITICIANS: " + (yesPoliticians.size() + noPoliticians.size()));
-        }
-
+        //Generate the indices needed in firt task of part 0
+        indexCreation();
+        System.out.println("Index Created");
+        // Create a TweetsIndexManager for yes tweets
         TweetsIndexManager yesTim = new TweetsIndexManager("index/AllYesTweetsIndex");
-        dir = Paths.get("index/AllYesTweetsIndex");
-        if (!Files.exists(dir)) {
-            ArrayList<String> yesScreenNames = pim.searchFilteredValueField("vote", "si", "screenName", 10000);
-            yesTim.create("index/AllTweetsIndex", "screenName", yesScreenNames);
-        } else {
-            System.out.println(dir.toString() + ": Index already created!");
-        }
-
+        // Create a TweetsIndexManager for no tweets
         TweetsIndexManager noTim = new TweetsIndexManager("index/AllNoTweetsIndex");
-        dir = Paths.get("index/AllNoTweetsIndex");
-        if (!Files.exists(dir)) {
-            ArrayList<String> noScreenNames = pim.searchFilteredValueField("vote", "no", "screenName", 10000);
-            noTim.create("index/AllTweetsIndex", "screenName", noScreenNames);
-        } else {
-            System.out.println(dir.toString() + ": Index already created!");
-        }
+        
+        // Define a time interval for SAX procedure (12h)
+        long timeInterval = 43200000L;
+        // Define the regex to be match that shows a pattern of collective attention
+        String regex = "a+b+a*b*a*";
+        // Relevant field in which search relevant words
+        String[] fieldNames = {"tweetText", "hashtags"};
+        // Get Yes and No relevant words
+        ArrayList<TweetTerm> yesList = yesTim.getRelFieldTerms(fieldNames, regex, timeInterval);
+        ArrayList<TweetTerm> noList = noTim.getRelFieldTerms(fieldNames, regex, timeInterval);
+        
+        // N° of cluster in witch divide the words found
+        int nCluster = 10;
+        // max number of iteration for k-means
+        int nIter = 1000;
 
-        int yesSize = yesTim.getIndexSizes();
-        int noSize = noTim.getIndexSizes();
-        System.out.println("");
-        System.out.println("YES TWEETS: " + yesSize);
-        System.out.println("NO TWEETS: " + noSize);
-        System.out.println("TOT TWEETS: " + (yesSize + noSize));
+        // Initialize a ClusterGraphFactory in order to create graphs generated by k-means
+        // Just created, these graph compute their cc and cores storing them in attributes.
+        ClusterGraphFactory cgf = new ClusterGraphFactory(nCluster, nIter);
 
-// ---> FARE BENE STO CAZZO DI GRAFICO <---
-//        long stepSize = 86400000L;
-//        long stepSize = 3600000L;
-//        ArrayList<long[]> yesDistro = yesTim.getTweetDistro(stepSize);
-//        ArrayList<long[]> noDistro = noTim.getTweetDistro(stepSize);
-//        
-//        double[] x = new double[yesDistro.get(1).length];
-//        double[] y = new double[yesDistro.get(1).length];
-//        int i;
-//        for(i = 0; i < yesDistro.get(1).length; i++){
-//            x[i] = i+1;
-//            y[i] = Math.log(1 + yesDistro.get(1)[i]);
-//        }
-//        Plot2DPanel plot = new Plot2DPanel();
-//
-//        // add a line plot to the PlotPanel
-//        plot.addLinePlot("Yes", x, y);
-//        plot.addLegend("SOUTH");
-//        
-//        for(i = 0; i < noDistro.get(1).length; i++){
-//            x[i] = i+1;
-//            y[i] = Math.log(1 + noDistro.get(1)[i]);
-//        }
-//        
-//        plot.addLinePlot("No", x, y);
-//        
-//        // put the PlotPanel in a JFrame, as a JPanel
-//        JFrame frame = new JFrame("a plot panel");
-//        frame.setContentPane(plot);
-//        frame.setVisible(true);  
+        // Yes graphs generated by the factory
+        ArrayList<ClusterGraph> yesGraphs = cgf.generate(yesList, yesTim);
+        // No graphs generated by the factory
+        ArrayList<ClusterGraph> noGraphs = cgf.generate(noList, noTim);
+
+        // Set the time interval to 3 hours
+        timeInterval = 3600000L;
+
+        // List of all the words of yes and no
+        ArrayList<String> representativeYesWordsList = new ArrayList<String>();
+        ArrayList<String> representativeNoWordsList = new ArrayList<String>();
+        
+        // Initialize a map in which put all relevant words for keys "yes" and "no".
         HashMap<String, ArrayList<String>> relWords = new HashMap<String, ArrayList<String>>();
+        // Initialize a map in which put all relevant componens for keys "yes" and "no". Each key has a list of 10 elements as value
         HashMap<String, ArrayList<ArrayList<String>>> relComps = new HashMap<String, ArrayList<ArrayList<String>>>();
+        // Initialize a map in which put all relevant Cores for keys "yes" and "no". Each key has a list of 10 elements as value
         HashMap<String, ArrayList<ArrayList<String>>> relCores = new HashMap<String, ArrayList<ArrayList<String>>>();
+        
+        // Initialize values for the two maps already created
         relComps.put("yes", new ArrayList<ArrayList<String>>());
         relComps.put("no", new ArrayList<ArrayList<String>>());
         relCores.put("yes", new ArrayList<ArrayList<String>>());
         relCores.put("no", new ArrayList<ArrayList<String>>());
-
-        long timeInterval = 43200000L;
-        String regex = "a+b+a*b*a*";
-        String[] fieldNames = {"tweetText", "hashtags"};
-        ArrayList<TweetTerm> yesList = yesTim.getRelFieldTerms(fieldNames, regex, timeInterval);
-        ArrayList<TweetTerm> noList = noTim.getRelFieldTerms(fieldNames, regex, timeInterval);
-
-        int nCluster = 10;
-        int nIter = 1000;
-
-        ClusterGraphFactory cgf = new ClusterGraphFactory(nCluster, nIter);
-
-        ArrayList<ClusterGraph> yesGraphs = cgf.generate(yesList, yesTim);
-        ArrayList<ClusterGraph> noGraphs = cgf.generate(noList, noTim);
-
-        int i = 1;
-        timeInterval = 3600000L;
-
-        ArrayList<String> representativeYesWordsList = new ArrayList<String>();
-        ArrayList<String> representativeNoWordsList = new ArrayList<String>();
+        
+        // For each yes cluster...
         for (ClusterGraph cg : yesGraphs) {
-            System.out.println("Yes Cluster n. " + i + ": ");
-            i++;
-            System.out.println("---> Core:");
+            
+            // ...Get the core elements and save them in coreList
             int[] core = cg.getCore().seq;
             ArrayList<Integer> coreList = new ArrayList<Integer>();
             for (int k = 0; k < core.length; k++) {
                 coreList.add(core[k]);
             }
-
-            System.out.println(cg.getWords(coreList));
+            
+            // Get all the labels of the words in the core and save them in relCores
             relCores.get("yes").add(cg.getWords(coreList));
-
-            System.out.println("---> Comps:");
+            
+            // Get cluster comps
             Set<Set<Integer>> comps = cg.getComps();
+            // For each comp
             for (Set<Integer> comp : comps) {
+                // Get all the elements of the comp
                 ArrayList<Integer> compElems = new ArrayList<Integer>();
-                System.out.println("+++ respective time series: +++");
                 for (int elem : comp) {
                     compElems.add(elem);
-                    String nodeName = cg.nodeMapper.getNode(elem);
-                    if (nodeName.startsWith("#")) {
-                        System.out.println(nodeName + "- tag: " + Arrays.toString(yesTim.getTermTimeSeries(nodeName, "hashtags", timeInterval)));
-                    } else {
-                        System.out.println(nodeName + "- text: " + Arrays.toString(yesTim.getTermTimeSeries(nodeName, "tweetText", timeInterval)));
-                    }
                 }
-
-                System.out.println("comp = " + cg.getWords(compElems));
+                
+                // Get all the labels of the words in the comp elements and save them in relComps
                 relComps.get("yes").add(cg.getWords(compElems));
-
+                
+                // Add all the words found in the list of the yes words
                 for (String word : cg.getWords(compElems)) {
                     representativeYesWordsList.add(word);
                 }
             }
         }
-
-        i = 1;
+        
+        // same for no graphs
         for (ClusterGraph cg : noGraphs) {
-            System.out.println("No Cluster n. " + i + ": ");
-            i++;
-            System.out.println("---> Core:");
             int[] core = cg.getCore().seq;
             ArrayList<Integer> coreList = new ArrayList<Integer>();
             for (int k = 0; k < core.length; k++) {
                 coreList.add(core[k]);
             }
 
-            System.out.println(cg.getWords(coreList));
             relCores.get("no").add(cg.getWords(coreList));
 
-            System.out.println("---> Comps:");
             Set<Set<Integer>> comps = cg.getComps();
             ArrayList<Integer> compElems = new ArrayList<Integer>();
             for (Set<Integer> comp : comps) {
                 compElems = new ArrayList<Integer>();
-                System.out.println("+++ respective time series: +++");
                 for (int elem : comp) {
                     compElems.add(elem);
                     String nodeName = cg.nodeMapper.getNode(elem);
-                    if (nodeName.startsWith("#")) {
-                        System.out.println(nodeName + ": " + Arrays.toString(noTim.getTermTimeSeries(nodeName, "hashtags", timeInterval)));
-                    } else {
-                        System.out.println(nodeName + ": " + Arrays.toString(noTim.getTermTimeSeries(nodeName, "tweetText", timeInterval)));
-                    }
+//                    if (nodeName.startsWith("#")) {
+//                        System.out.println(nodeName + ": " + Arrays.toString(noTim.getTermTimeSeries(nodeName, "hashtags", timeInterval)));
+//                    } else {
+//                        System.out.println(nodeName + ": " + Arrays.toString(noTim.getTermTimeSeries(nodeName, "tweetText", timeInterval)));
+//                    }
                 }
-                System.out.println("comp = " + cg.getWords(compElems));
                 relComps.get("no").add(cg.getWords(compElems));
 
+                // For each no word found
                 for (String word : cg.getWords(compElems)) {
+                    // If a word is already in the list of yes words
                     if (representativeYesWordsList.contains(word)) {
+                        // Remove it from the Yes list and skip the adding
                         int flag = representativeYesWordsList.indexOf(word);
                         representativeYesWordsList.remove(flag);
                     } else {
+                        // add it to the no list
                         representativeNoWordsList.add(word);
                     }
                 }
             }
-            System.out.println("");
         }
-
-        relWords.put("no", representativeNoWordsList);
+        
+        // Add Words to the words map
         relWords.put("yes", representativeYesWordsList);
+        relWords.put("no", representativeNoWordsList);
 
+        // Save maps obtained in json
         ObjectMapper mapper = new ObjectMapper();
         try {
             mapper.writeValue(new File("output/relWords.json"), relWords);
@@ -299,6 +243,118 @@ public class Application {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    private static void indexCreation() {
+        // Initialize a TweetsIndexManager for the index of all tweets
+        TweetsIndexManager tim = new TweetsIndexManager("index/AllTweetsIndex");
+
+        // If the index of all tweets doesn't exist
+        Path dir = Paths.get("index/AllTweetsIndex");
+        if (!Files.exists(dir)) {
+            // Create it
+            tim.create("input/stream");
+        } else {
+            // Advise the index already exist
+            System.out.println(dir.toString() + ": Index already created!");
+        }
+
+        // Initialize a PoliticiansIndexManager for the index of all Politicians found
+        PoliticiansIndexManager pim = new PoliticiansIndexManager("index/AllPoliticiansIndex");
+        // If the index of all politicians doesn't exist
+        dir = Paths.get("index/AllPoliticiansIndex");
+        if (!Files.exists(dir)) {
+            // Create it
+            pim.create("input/politicians.csv");
+        } else {
+            // Advise the index already exist
+            System.out.println(dir.toString() + ": Index already created!");
+        }
+
+        // Divide politicians in YES and NO
+        ArrayList<Document> yesPoliticians = pim.searchForField("vote", "si", 100000);
+        ArrayList<Document> noPoliticians = pim.searchForField("vote", "no", 100000);
+
+        // Show how many politicians we got
+        if (yesPoliticians != null && noPoliticians != null) {
+            System.out.println("YES POLITICIANS: " + yesPoliticians.size());
+            System.out.println("NO POLITICIANS: " + noPoliticians.size());
+            System.out.println("TOT POLITICIANS: " + (yesPoliticians.size() + noPoliticians.size()));
+        }
+
+        // Initialize a TweetsIndexManager for the index of all yes tweets based on yes pols
+        TweetsIndexManager yesTim = new TweetsIndexManager("index/AllYesTweetsIndex");
+
+        // If the index of all yes tweets doesn't exist
+        dir = Paths.get("index/AllYesTweetsIndex");
+        if (!Files.exists(dir)) {
+            // Create it collecting all the yes ploticians screen name
+            ArrayList<String> yesScreenNames = pim.searchFilteredValueField("vote", "si", "screenName", 10000);
+            yesTim.create("index/AllTweetsIndex", "screenName", yesScreenNames);
+        } else {
+            // Advise the index already exist
+            System.out.println(dir.toString() + ": Index already created!");
+        }
+
+        // Initialize a TweetsIndexManager for the index of all no tweets based on no pols
+        TweetsIndexManager noTim = new TweetsIndexManager("index/AllNoTweetsIndex");
+
+        // If the index of all no tweets doesn't exist
+        dir = Paths.get("index/AllNoTweetsIndex");
+        if (!Files.exists(dir)) {
+            // Create it collecting all the no ploticians screen name
+            ArrayList<String> noScreenNames = pim.searchFilteredValueField("vote", "no", "screenName", 10000);
+            noTim.create("index/AllTweetsIndex", "screenName", noScreenNames);
+        } else {
+            // Advise the index already exist
+            System.out.println(dir.toString() + ": Index already created!");
+        }
+
+        // Get all tweets of interest(YES and NO tweets related to our pols)
+        int yesSize = yesTim.getIndexSizes();
+        int noSize = noTim.getIndexSizes();
+
+        // And print the sizes
+        System.out.println("");
+        System.out.println("YES TWEETS: " + yesSize);
+        System.out.println("NO TWEETS: " + noSize);
+        System.out.println("TOT TWEETS: " + (yesSize + noSize));
+
+        // Set stepsize to one hour
+        long stepSize = 3600000L;
+
+        // Get yes and no tweets distro over our stepsize
+        ArrayList<long[]> yesDistro = yesTim.getTweetDistro(stepSize);
+        ArrayList<long[]> noDistro = noTim.getTweetDistro(stepSize);
+
+        // Create a PlotTool class
+        PlotTool plot = new PlotTool();
+
+        // Generate coordinates for plot
+        double[] x1 = new double[yesDistro.get(1).length];
+        double[] y1 = new double[yesDistro.get(1).length];
+        int i;
+
+        // Rescale tweets frequency data
+        for (i = 0; i < yesDistro.get(1).length; i++) {
+            x1[i] = i + 1;
+            y1[i] = Math.log(1 + yesDistro.get(1)[i]);
+        }
+
+        double[] x2 = new double[yesDistro.get(1).length];
+        double[] y2 = new double[yesDistro.get(1).length];
+
+        // Rescale tweets frequency data
+        for (i = 0; i < noDistro.get(1).length; i++) {
+            x2[i] = i + 1;
+            y2[i] = Math.log(1 + noDistro.get(1)[i]);
+        }
+
+        // Create plots
+        plot.createPlot("Yes", x1, y1, "No", x2, y2, "Tweets Distribution", "Time", "Frequency");
+        plot.setBounds(0, 0D, 242D);
+        plot.setBounds(1, 0D, 5.5D);
+        plot.getPlot(1200, 600);
     }
 
     public static void part1() {
@@ -730,7 +786,7 @@ public class Application {
             int worker = (int) (Runtime.getRuntime().availableProcessors());
 
             int[] initLabels = getInitLabel("output/yesAuthorities.txt", "output/noAuthorities.txt", g);
-            int[] labelsAuthorities = ComunityLPA.compute(g, 1.0d, worker, initLabels);
+            int[] labelsAuthorities = ComunityLPA.compute(g, .99d, worker, initLabels);
 
             int yes = 0, no = 0, unclassified = 0;
 
@@ -747,12 +803,12 @@ public class Application {
                         break;
                 }
             }
-            
+
             System.out.println("+++ AUTHORITIES +++");
             System.out.println("YES: " + yes + ", NO: " + no + ", UNCLASSIFIED: " + unclassified);
 
             initLabels = getInitLabel("output/yesHubs.txt", "output/noHubs.txt", g);
-            int[] labelsHubs = ComunityLPA.compute(g, 1.0d, worker, initLabels);
+            int[] labelsHubs = ComunityLPA.compute(g, .99d, worker, initLabels);
 
             yes = 0;
             no = 0;
@@ -771,12 +827,12 @@ public class Application {
                         break;
                 }
             }
-            
+
             System.out.println("+++ HUBS +++");
             System.out.println("YES: " + yes + ", NO: " + no + ", UNCLASSIFIED: " + unclassified);
-            
+
             initLabels = getInitLabel("output/yesBrokers.txt", "output/noBrokers.txt", g);
-            int[] labelBrokers = ComunityLPA.compute(g, 1.0d, worker, initLabels);
+            int[] labelBrokers = ComunityLPA.compute(g, .99d, worker, initLabels);
 
             yes = 0;
             no = 0;
@@ -795,17 +851,17 @@ public class Application {
                         break;
                 }
             }
-            
+
             System.out.println("+++ BROKERS +++");
             System.out.println("YES: " + yes + ", NO: " + no + ", UNCLASSIFIED: " + unclassified);
-            
-            FileWriter fileWriter = new FileWriter("output/LPA.txt");
-                PrintWriter printWriter = new PrintWriter(fileWriter);
 
-                for (int i = 0; i < g.size; i++) {
-                    printWriter.print(i + " " + labelsAuthorities[i] + " " + labelsHubs[i] + " " + labelBrokers[i] + "\n");
-                }
-                printWriter.close();
+            FileWriter fileWriter = new FileWriter("output/LPA.txt");
+            PrintWriter printWriter = new PrintWriter(fileWriter);
+
+            for (int i = 0; i < g.size; i++) {
+                printWriter.print(i + " " + labelsAuthorities[i] + " " + labelsHubs[i] + " " + labelBrokers[i] + "\n");
+            }
+            printWriter.close();
 
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
