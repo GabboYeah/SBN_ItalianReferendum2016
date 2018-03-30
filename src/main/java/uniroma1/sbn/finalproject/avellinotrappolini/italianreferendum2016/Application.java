@@ -81,10 +81,20 @@ import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manage
 public class Application {
 
     public static void main(String[] args) {
-        if (!Files.exists(Paths.get("output/relWords.json")) || !Files.exists(Paths.get("output/relComps.json")) || !Files.exists(Paths.get("output/relCores.json"))) {
+        if (!Files.exists(Paths.get("output/relWords.json"))
+                || !Files.exists(Paths.get("output/relComps.json"))
+                || !Files.exists(Paths.get("output/relCores.json"))) {
             temporalAnalysis();
         }
-        part1();
+        if (!Files.exists(Paths.get("output/yesAuthorities.txt"))
+                || !Files.exists(Paths.get("output/noAuthorities.txt"))
+                || !Files.exists(Paths.get("output/yesHubs.txt"))
+                || !Files.exists(Paths.get("output/noHubs.txt"))
+                || !Files.exists(Paths.get("output/yesBrokers.txt"))
+                || !Files.exists(Paths.get("output/noBrokers.txt"))) {
+            part1();
+        }
+
         part2();
     }
 
@@ -458,7 +468,7 @@ public class Application {
 
             System.out.println("YES AUTHORITIES: " + yesAuthorities.size());
             System.out.println("NO AUTHORITIES: " + noAuthorities.size());
-            System.out.println("UCLASSIFIED AUTHORITIES: " + unclassifiedAuthorities.size());
+            System.out.println("UNCLASSIFIED AUTHORITIES: " + unclassifiedAuthorities.size());
 
             fileWriter = new FileWriter("output/yesAuthorities.txt");
             printWriter = new PrintWriter(fileWriter);
@@ -531,7 +541,7 @@ public class Application {
             printWriter = new PrintWriter(fileWriter);
 
             for (String hub : yesHubs) {
-                printWriter.print(hub + "\n");
+                printWriter.print(hub + " " + nodeMapper.getId(hub) + "\n");
             }
             printWriter.close();
 
@@ -539,13 +549,40 @@ public class Application {
             printWriter = new PrintWriter(fileWriter);
 
             for (String hub : noHubs) {
-                printWriter.print(hub + "\n");
+                printWriter.print(hub + " " + nodeMapper.getId(hub) + "\n");
             }
             printWriter.close();
 
             System.out.println();
             System.out.println("YES HUBS: " + yesHubsList.size());
             System.out.println("NO HUBS: " + noHubsList.size());
+
+//            fileWriter = new FileWriter("output/yesBrokersCorretto.txt");
+//            printWriter = new PrintWriter(fileWriter);
+//            FileReader fr = new FileReader("output/yesBrokers.txt");
+//            BufferedReader br = new BufferedReader(fr);
+//
+//            String line;
+//
+//            while ((line = br.readLine()) != null) {
+//                String broker = line;
+//                printWriter.print(broker + " " + nodeMapper.getId(broker) + "\n");
+//            }
+//            printWriter.close();
+//            br.close();
+//
+//            fileWriter = new FileWriter("output/noBrokersCorretto.txt");
+//            printWriter = new PrintWriter(fileWriter);
+//            fr = new FileReader("output/noBrokers.txt");
+//            br = new BufferedReader(fr);
+//
+//            while ((line = br.readLine()) != null) {
+//                String broker = line;
+//                printWriter.print(broker + " " + nodeMapper.getId(broker) + "\n");
+//            }
+//            printWriter.close();
+//            br.close();
+            System.out.println("STOPPAMI!");
 
 //            int[] degreeInDistribution = new int[ccsg.size];
 //            int[] degreeOutDistribution = new int[ccsg.size];
@@ -583,8 +620,6 @@ public class Application {
 //            System.out.println("IN DEGREE 25%:  " + degreeInDistribution[(int) ccsg.size / 4]);
 //            System.out.println("OUT DEGREE 25%: " + degreeOutDistribution[(int) ccsg.size / 4]);
 //            System.out.println("SUM DEGREE 25%: " + degreeSumDistribution[(int) ccsg.size / 4]);
-
-
             ArrayList<Integer> nodeTresholdALst = new ArrayList<>();
             for (int i = 0; i < ccsg.size; i++) {
                 if (ccsg.out[i] != null && ccsg.out[i].length > 28) {
@@ -644,7 +679,7 @@ public class Application {
             printWriter = new PrintWriter(fileWriter);
 
             for (String broker : yesBrokers) {
-                printWriter.print(broker + "\n");
+                printWriter.print(broker + " " + nodeMapper.getId(broker) + "\n");
             }
             printWriter.close();
 
@@ -652,7 +687,7 @@ public class Application {
             printWriter = new PrintWriter(fileWriter);
 
             for (String broker : noBrokers) {
-                printWriter.print(broker + "\n");
+                printWriter.print(broker + " " + nodeMapper.getId(broker) + "\n");
             }
             printWriter.close();
 
@@ -695,8 +730,82 @@ public class Application {
             int worker = (int) (Runtime.getRuntime().availableProcessors());
 
             int[] initLabels = getInitLabel("output/yesAuthorities.txt", "output/noAuthorities.txt", g);
-            int[] labels = ComunityLPA.compute(g, 1.0d, worker, initLabels);
-            System.out.println(Arrays.toString(labels));
+            int[] labelsAuthorities = ComunityLPA.compute(g, 1.0d, worker, initLabels);
+
+            int yes = 0, no = 0, unclassified = 0;
+
+            for (int label : labelsAuthorities) {
+                switch (label) {
+                    case 1:
+                        yes++;
+                        break;
+                    case 2:
+                        no++;
+                        break;
+                    default:
+                        unclassified++;
+                        break;
+                }
+            }
+            
+            System.out.println("+++ AUTHORITIES +++");
+            System.out.println("YES: " + yes + ", NO: " + no + ", UNCLASSIFIED: " + unclassified);
+
+            initLabels = getInitLabel("output/yesHubs.txt", "output/noHubs.txt", g);
+            int[] labelsHubs = ComunityLPA.compute(g, 1.0d, worker, initLabels);
+
+            yes = 0;
+            no = 0;
+            unclassified = 0;
+
+            for (int label : labelsHubs) {
+                switch (label) {
+                    case 1:
+                        yes++;
+                        break;
+                    case 2:
+                        no++;
+                        break;
+                    default:
+                        unclassified++;
+                        break;
+                }
+            }
+            
+            System.out.println("+++ HUBS +++");
+            System.out.println("YES: " + yes + ", NO: " + no + ", UNCLASSIFIED: " + unclassified);
+            
+            initLabels = getInitLabel("output/yesBrokers.txt", "output/noBrokers.txt", g);
+            int[] labelBrokers = ComunityLPA.compute(g, 1.0d, worker, initLabels);
+
+            yes = 0;
+            no = 0;
+            unclassified = 0;
+
+            for (int label : labelBrokers) {
+                switch (label) {
+                    case 1:
+                        yes++;
+                        break;
+                    case 2:
+                        no++;
+                        break;
+                    default:
+                        unclassified++;
+                        break;
+                }
+            }
+            
+            System.out.println("+++ BROKERS +++");
+            System.out.println("YES: " + yes + ", NO: " + no + ", UNCLASSIFIED: " + unclassified);
+            
+            FileWriter fileWriter = new FileWriter("output/LPA.txt");
+                PrintWriter printWriter = new PrintWriter(fileWriter);
+
+                for (int i = 0; i < g.size; i++) {
+                    printWriter.print(i + " " + labelsAuthorities[i] + " " + labelsHubs[i] + " " + labelBrokers[i] + "\n");
+                }
+                printWriter.close();
 
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
@@ -719,6 +828,7 @@ public class Application {
                 int id = Integer.parseInt(line.split(" ")[1]);
                 initLabel[id] = 1;
             }
+            br.close();
 
             fr = new FileReader(noPath);
             br = new BufferedReader(fr);
@@ -727,6 +837,8 @@ public class Application {
                 int id = Integer.parseInt(line.split(" ")[1]);
                 initLabel[id] = 2;
             }
+            br.close();
+
             return initLabel;
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);

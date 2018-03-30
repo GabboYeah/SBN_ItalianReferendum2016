@@ -18,6 +18,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Random;
 import java.util.zip.GZIPInputStream;
 import org.apache.lucene.document.Document;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities.Supporter;
@@ -31,16 +32,22 @@ import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manage
 public class prova {
 
     public static void main(String[] args) throws IOException {
-
-        TweetsIndexManager tim = new TweetsIndexManager("index/AllTweetsIndex");
-        tim.setReader("index/AllTweetsIndex");
-        ArrayList<Document> x = tim.searchForField("screenName", "salvoaranzulla", 1000000);
-        for(Document doc : x){
-            System.out.println(doc.get("tweetText"));
-            System.out.println(doc.get("hashtags"));
-            System.out.println(doc.get("mentioned"));
-            
+        
+        Random rnd = new Random(123454);
+        
+        for (int i = 0; i < 10; i++) {
+            System.out.println(rnd.nextInt(2));
         }
+        
+//        TweetsIndexManager tim = new TweetsIndexManager("index/AllTweetsIndex");
+//        tim.setReader("index/AllTweetsIndex");
+//        ArrayList<Document> x = tim.searchForField("screenName", "salvoaranzulla", 1000000);
+//        for(Document doc : x){
+//            System.out.println(doc.get("tweetText"));
+//            System.out.println(doc.get("hashtags"));
+//            System.out.println(doc.get("mentioned"));
+//            
+//        }
 //        PoliticiansIndexManager pim = new PoliticiansIndexManager("index/AllPoliticiansIndex");
 //        pim.setReader("index/AllPoliticiansIndex");
 //        ArrayList<Document> docs = pim.searchForField("vote", "no", 10000000);

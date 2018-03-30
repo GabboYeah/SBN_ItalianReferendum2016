@@ -56,7 +56,6 @@ public class ComunityLPA implements Runnable {
                     j++;
                 } else if (g.out[i] == null) {
                     labels[i] = -1;
-                    System.out.println("NODO INUTILE!!!");;
                 }
             }
 
@@ -85,46 +84,25 @@ public class ComunityLPA implements Runnable {
                 for (int x = 0; x < near.length; x++) {
                     nearLabs[x] = labels[near[x]];
                 }
-                if(bestLabel(nearLabs) != -1)
-                    labels[list[i]] = bestLabel(nearLabs);
+
+                int bl = bestLabel(nearLabs);
+
+                if (bl != -1) {
+                    labels[list[i]] = bl;
+                }
             }
         }
         barrier.countDown();
     }
 
-//    public static int bestLabel(int[] neighborhood) {
-//        Arrays.sort(neighborhood);
-//        int best = -1;
-//        int maxCount = -1;
-//        int counter = 0;
-//        int last = -1;
-//        for (int i = 0; i < neighborhood.length; i++) {
-//            if (maxCount > (neighborhood.length - i)) {
-//                break;
-//            }
-//
-//            if (neighborhood[i] == last) {
-//                counter++;
-//                if (counter > maxCount && last != 0) {
-//                    maxCount = counter;
-//                    best = last;
-//                }
-//            } else {
-//                counter = 0;
-//                last = neighborhood[i];
-//            }
-//        }
-//
-//        return best;
-//    }
     public static int bestLabel(int[] neighborhood) {
         int yes = 0;
-        int no  = 0;
-        
+        int no = 0;
+
         for (int i = 0; i < neighborhood.length; i++) {
             if (neighborhood[i] == 1) {
                 yes++;
-            } else if(neighborhood[i] == 2){
+            } else if (neighborhood[i] == 2) {
                 no++;
             }
         }
@@ -132,16 +110,19 @@ public class ComunityLPA implements Runnable {
         if (yes == 0 && no == 0) {
             return -1;
         } else {
-            if(yes > no)
-                return yes;
-            else
-                return no;
+            if (yes > no) {
+                return 1;
+            } else if (yes < no) {
+                return 2;
+            } else {
+                return rnd.nextInt(2) + 1;
+            }
         }
     }
 
     public static int[] compute(final WeightedGraph g, double threshold, int runner, int[] initLabels) {
 
-        ComunityLPA.rnd = new Random(System.currentTimeMillis());
+        ComunityLPA.rnd = new Random(123454L);
 
         int[] labels = initLabels;
         int[] newLabels = labels;
@@ -160,6 +141,7 @@ public class ComunityLPA implements Runnable {
 
         do {
             iter++;
+            //System.out.println("ITER N: " + iter);
             labels = newLabels;
             newLabels = Arrays.copyOf(labels, labels.length);
             latch = new CountDownLatch(runner);
@@ -176,6 +158,15 @@ public class ComunityLPA implements Runnable {
                 logger.debug(e);
             }
 
+//            int inequality = 0;
+//
+//            for (int i = 0; i < labels.length; i++) {
+//                if (labels[i] != newLabels[i]) {
+//                    inequality++;
+//                }
+//            }
+//            
+//            System.out.println(inequality);
         } while (smoothEnd(labels, newLabels, iter, threshold));
 
         ex.shutdown();
