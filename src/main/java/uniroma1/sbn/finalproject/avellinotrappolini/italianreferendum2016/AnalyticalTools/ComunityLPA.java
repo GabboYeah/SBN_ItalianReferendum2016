@@ -1,13 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.AnalyticalTools;
 
 import it.stilo.g.structures.WeightedGraph;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -16,8 +10,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 /**
- *
- * @author Gabriele
+ * This class compute comunityLPA
+ * @author Gabriele Avellino
+ * @author Giovanni Trappolini
  */
 public class ComunityLPA implements Runnable {
 
@@ -41,22 +36,29 @@ public class ComunityLPA implements Runnable {
         this.chunk = chunk;
     }
 
+    // Initialize labels list
     private boolean initList() {
+        // Check that the list is not been initialized yet
         if (list == null) {
             // Partitioning over worker
             list = new int[(g.in.length / runner) + runner];
-
+            
+            // Iterator over the neighbours
             int j = 0;
-
+            
+            // For each node
             for (int i = chunk; i < g.in.length; i += runner) {
-
+                // If the node has positive indegree and the label already assigned is 0
+                // MEMO: The interest is in nodes with indegree positive that have
+                //       not a yes or no label yet, that are not our authorities, 
+                //       hubs or brokers. 
                 if (g.in[i] != null && labels[i] == 0) {
-
+                    // Save this node in the list of nodes that need a label
                     list[j] = i;
                     j++;
                 }
             }
-
+            // Resize the list
             list = Arrays.copyOf(list, j);
 
             //Shuffle
@@ -90,29 +92,39 @@ public class ComunityLPA implements Runnable {
                 }
             }
         }
-        //System.out.println("runner n. " + chunk + ", labels = " + Arrays.toString(labels));
         barrier.countDown();
     }
 
+    // Detect the label of a node looking at its neighbours
     public static int bestLabel(int[] neighborhood) {
+        // Counter for yes and no neighbours
         int yes = 0;
         int no = 0;
 
+        // Each neighbour of the node
         for (int i = 0; i < neighborhood.length; i++) {
+            // If the neighbour has label yes
             if (neighborhood[i] == 1) {
+                // Add one to the yes counter
                 yes++;
+            // Else if the neighbour has label no
             } else if (neighborhood[i] == 2) {
+                // Add one to the no counter
                 no++;
             }
         }
 
+        // If the node has not yes and no neighbours
         if (yes == 0 && no == 0) {
+            // Mantain the actual label of the node
             return -1;
+        // Otherwise assign the label with higher value
         } else {
             if (yes > no) {
                 return 1;
             } else if (yes < no) {
                 return 2;
+            // In case of draw select it at random
             } else {
                 return rnd.nextInt(2) + 1;
             }
@@ -122,9 +134,8 @@ public class ComunityLPA implements Runnable {
     public static int[] compute(final WeightedGraph g, double threshold, int runner, int[] initLabels) {
 
         ComunityLPA.rnd = new Random(123454L);
-
+        // Get initial label values
         int[] labels = initLabels;
-        //System.out.println(Arrays.toString(initLabels));
         int[] newLabels = labels;
         int iter = 0;
 
@@ -142,7 +153,6 @@ public class ComunityLPA implements Runnable {
         do {
             iter++;
             labels = newLabels;
-            //System.out.println("ITER N: " + iter + ", labels = " + Arrays.toString(labels));
             newLabels = Arrays.copyOf(labels, labels.length);
             latch = new CountDownLatch(runner);
 
@@ -157,16 +167,6 @@ public class ComunityLPA implements Runnable {
             } catch (InterruptedException e) {
                 logger.debug(e);
             }
-
-//            int inequality = 0;
-//
-//            for (int i = 0; i < labels.length; i++) {
-//                if (labels[i] != newLabels[i]) {
-//                    inequality++;
-//                }
-//            }
-//            
-//            System.out.println(inequality);
             
         } while (smoothEnd(labels, newLabels, iter, threshold));
 

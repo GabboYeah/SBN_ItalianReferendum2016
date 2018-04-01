@@ -1,29 +1,31 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities;
 
 /**
- *
- * @author Gabriele
+ * This entity represents all the attributes of tweet term for our amalysis
+ * @author Gabriele Avellino
+ * @author Giovanni Trappolini
  */
 public class TweetTerm implements Comparable<TweetTerm>{
+    // The word
     private String word;
+    // Identifies if the term is a word or a hashtag
     private String type;
+    // Number of times the term is used
     private int frequency;
+    // String of letters representing the trend of the term curve
     private String saxRep;
+    // The trend of the curve
     private double[] timeSeries;
+    // Binary representation of SAX string
     private double[] binaryRep;
 
     /**
-     *
-     * @param word
-     * @param type
-     * @param frequency
-     * @param saxRep
-     * @param timeSeries
+     * Initialize some values of the TweetTerm
+     * @param word the word related to the term
+     * @param type Identifies if the term is a word or a hashtag
+     * @param frequency Number of times the term is used
+     * @param saxRep String of letters representing the trend of the term curve
+     * @param timeSeries The trend of the curve
      */
     public TweetTerm(String word, String type, int frequency, String saxRep, double[] timeSeries) {
         this.word = word;
@@ -31,12 +33,13 @@ public class TweetTerm implements Comparable<TweetTerm>{
         this.frequency = frequency;
         this.saxRep = saxRep;
         this.timeSeries = timeSeries;
+        // Set the value of binaryRep
         toBinary();
     }
 
     /**
      *
-     * @return
+     * @return word
      */
     public String getWord() {
         return word;
@@ -44,7 +47,7 @@ public class TweetTerm implements Comparable<TweetTerm>{
 
     /**
      *
-     * @return
+     * @return type
      */
     public String getType() {
         return type;
@@ -52,15 +55,7 @@ public class TweetTerm implements Comparable<TweetTerm>{
 
     /**
      *
-     * @param word
-     */
-    public void setWord(String word) {
-        this.word = word;
-    }
-
-    /**
-     *
-     * @return
+     * @return frequency
      */
     public int getFrequency() {
         return frequency;
@@ -68,15 +63,7 @@ public class TweetTerm implements Comparable<TweetTerm>{
 
     /**
      *
-     * @param frequency
-     */
-    public void setFrequency(int frequency) {
-        this.frequency = frequency;
-    }
-
-    /**
-     *
-     * @return
+     * @return SAX representation
      */
     public String getSaxRep() {
         return saxRep;
@@ -84,15 +71,7 @@ public class TweetTerm implements Comparable<TweetTerm>{
 
     /**
      *
-     * @param saxRep
-     */
-    public void setSaxRep(String saxRep) {
-        this.saxRep = saxRep;
-    }
-
-    /**
-     *
-     * @return
+     * @return Time series
      */
     public double[] getTimeSeries() {
         return timeSeries;
@@ -100,45 +79,34 @@ public class TweetTerm implements Comparable<TweetTerm>{
 
     /**
      *
-     * @param timeSeries
-     */
-    public void setTimeSeries(double[] timeSeries) {
-        this.timeSeries = timeSeries;
-    }
-
-    /**
-     *
-     * @return
+     * @return binary representation of SAX string
      */
     public double[] getBinaryRep() {
         return binaryRep;
     }
 
     /**
-     *
-     * @param binaryRep
-     */
-    public void setBinaryRep(double[] binaryRep) {
-        this.binaryRep = binaryRep;
-    }
-
-    /**
-     *
-     * @param t
-     * @return
+     * Compare the frequency between two TweetTerm object
+     * @param t the other TweetTerm
+     * @return the difference between the two frequencies
      */
     @Override
     public int compareTo(TweetTerm t) {
         return t.getFrequency() - this.frequency;
     }
     
+    // Transform the SAX string in a binary array and save it to binaryRep
     private void toBinary(){
-        int i;
+        // Initialize binaryRep
         this.binaryRep = new double[saxRep.length()]; 
-        for(i = 0; i < saxRep.length(); i++){
+        // For each letter of SAX string
+        for(int i = 0; i < saxRep.length(); i++){
+            // If it is an A
             if(saxRep.charAt(i) == 'a')
+                // Add a 0
                 binaryRep[i] = 0;
             else
+                // Otherwise add a 1
                 binaryRep[i] = 1;
         }
     }

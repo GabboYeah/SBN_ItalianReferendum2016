@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager;
 
 import java.io.File;
@@ -74,12 +69,12 @@ public abstract class IndexManager {
     public abstract void create(String sourcePath, String fieldName, ArrayList<String> fieldValues);
 
     /**
-     * Collect all documents that match the fieldValue for a specific fieldName. Return an ArrayList of matched documents.
+     * Collect all documents that match the fieldValue for a specific fieldName.
      * 
      * @param fieldName name of the field where the match has to be verified
      * @param fieldValue value to match
      * @param range number of results to return
-     * @return
+     * @return Return an ArrayList of matched documents.
      */
     public ArrayList<Document> searchForField(String fieldName, String fieldValue, int range) {
         try {
@@ -125,11 +120,11 @@ public abstract class IndexManager {
     }
 
     /**
-     * Collect all documents that match the fieldValue for a specific list of fieldNames. Return an ArrayList of matched documents.
+     * Collect all documents that match the fieldValue for a specific list of fieldNames.
      * @param fieldName name of the field where the match has to be verified
      * @param fieldValues list of values to match
      * @param range number of results to return
-     * @return
+     * @return Return an ArrayList of matched documents.
      */
     public ArrayList<Document> searchForField(String fieldName, ArrayList<String> fieldValues, int range) {
 
@@ -148,7 +143,7 @@ public abstract class IndexManager {
      * Return a list of Strings that represent the value of each document of the list for a specific field.
      * @param docs List of document to examinate
      * @param fieldName Field of interest
-     * @return 
+     * @return Return a list of Strings that represent the value of each document of the list for a specific field.
      */
     public ArrayList<String> getFieldValuesList(ArrayList<Document> docs, String fieldName) {
         ArrayList<String> results = new ArrayList<String>();
@@ -168,7 +163,7 @@ public abstract class IndexManager {
      * @param filterFieldValues list of values to match in the index for a specific field name
      * @param fieldOfInterest field from which get values
      * @param range number of results
-     * @return 
+     * @return Return the list of a values of a specific field in a collection of documents selected by the match of fieldValues for a specific fieldName. 
      */
     public ArrayList<String> searchFilteredValueField(String filterFieldName,
             ArrayList<String> filterFieldValues, String fieldOfInterest, int range) {
@@ -181,7 +176,7 @@ public abstract class IndexManager {
      * @param filterFieldValue value to match in the index for a specific field name
      * @param fieldOfInterest field from which get values
      * @param range number of results
-     * @return 
+     * @return Return the list of a values of a specific field in a collection of documents selected by the match of fieldValues for a specific fieldName. 
      */
     public ArrayList<String> searchFilteredValueField(String filterFieldName,
             String filterFieldValue, String fieldOfInterest, int range) {
@@ -223,7 +218,7 @@ public abstract class IndexManager {
      * Return all the documents where the term is present in a specific field.
      * @param term term to search
      * @param field field in which the term has to been searched
-     * @return 
+     * @return Return all the documents where the term is present in a specific field.
      */
     public ScoreDoc[] searchTermInAField(String term, String field) {
         try {
@@ -255,7 +250,7 @@ public abstract class IndexManager {
      * @param field1 field in which term1 has to been searched
      * @param term2 term to search in field2
      * @param field2 field in which term2 has to been searched
-     * @return 
+     * @return Return an array of docs were term1 appears in field1 and term2 appears in field2.
      */
     public ScoreDoc[] searchTwoTermsInFields(String term1, String field1, String term2, String field2) {
         // Create two TermQueries
@@ -286,7 +281,7 @@ public abstract class IndexManager {
      * Return all documents in which appears at least one term of the list.
      * @param terms list of terms to match
      * @param field field in which search terms
-     * @return
+     * @return Return all documents in which appears at least one term of the list.
      */
     public ScoreDoc[] searchTermsInAField(ArrayList<String> terms, String field) {
         
