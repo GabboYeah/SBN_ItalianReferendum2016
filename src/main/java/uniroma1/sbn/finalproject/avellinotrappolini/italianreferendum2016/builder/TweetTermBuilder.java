@@ -1,11 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builder;
 
-import java.util.Arrays;
 import net.seninp.jmotif.sax.SAXException;
 import net.seninp.jmotif.sax.SAXProcessor;
 import net.seninp.jmotif.sax.alphabet.NormalAlphabet;
@@ -13,41 +7,47 @@ import net.seninp.jmotif.sax.datastructure.SAXRecords;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities.TweetTerm;
 
 /**
- *
- * @author Gabriele
+ * This builder create a new TweetTerm computing also its SAX
+ * @author Gabriele Avellino
+ * @author Giovanni Trappolini
  */
-public class TweetWordBuilder {
-
+public class TweetTermBuilder {
+    // Size of SAX representation Alphabet
     int alphabetSize;
+    // Sax threshold
     double nThreshold;
+    // alphabet component for SAX
     NormalAlphabet na;
+    
+    SAXProcessor sp;
 
     /**
-     *
+     * Initialize Builder params
      * @param alphabetSize
      * @param nThreshold
      */
-    public TweetWordBuilder(int alphabetSize, double nThreshold) {
+    public TweetTermBuilder(int alphabetSize, double nThreshold) {
         this.alphabetSize = alphabetSize;
         this.nThreshold = nThreshold;
         this.na = new NormalAlphabet();
         this.sp = new SAXProcessor();
     }
-    SAXProcessor sp;
 
     /**
-     *
-     * @param word
-     * @param type
-     * @param timeSeries
-     * @param frequency
-     * @return
+     * Build a new TweetTerm
+     * @param word word related to the TweetTerm
+     * @param type TweetTerm type: text term or hashtag term
+     * @param timeSeries TweetTerm time series
+     * @param frequency TweetTerm frequency
+     * @return a new TweetTerm
      * @throws SAXException
      */
     public TweetTerm build(String word, String type, double[] timeSeries, int frequency) throws SAXException {
+        // Compute SAX
         SAXRecords res = sp.ts2saxByChunking(timeSeries, timeSeries.length, na.getCuts(alphabetSize), nThreshold);
+        // Get sax representation
         String sax = res.getSAXString("");
-        //System.out.println(word + ", " + frequency + ", " + sax + ", " + Arrays.toString(timeSeries));
+        // Return a new TweetTerm
         return new TweetTerm(word, type, frequency, sax, timeSeries);
     }
 }

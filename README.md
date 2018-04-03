@@ -14,12 +14,12 @@ A social and behaviour network study about tweets network stream during the refe
 	TweetTerm				v
 	ClusterGraphFactory		v
 	IndexManager			v
-	PoliticiansIndexManager	x
-	SupportersIndexManager	x
+	PoliticiansIndexManager	v
+	SupportersIndexManager	v
 	TweetsIndexManager		v
-	IndexBuilder			x
-	PoliticiansIndexBuilder	x
-	SupportersIndexBuilder	x
-	TweetWordBuilder		x
-	TweetsIndexBuilder		x
+	IndexBuilder			v
+	PoliticiansIndexBuilder	v
+	SupportersIndexBuilder	v
+	TweetWordBuilder		v
+	TweetsIndexBuilder		v
 	

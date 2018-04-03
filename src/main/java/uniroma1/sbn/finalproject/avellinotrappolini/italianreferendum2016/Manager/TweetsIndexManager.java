@@ -1,6 +1,5 @@
 package uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manager;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -8,27 +7,23 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import net.seninp.jmotif.sax.SAXException;
-import org.apache.lucene.index.DirectoryReader;
 import org.apache.lucene.index.Fields;
-import org.apache.lucene.index.IndexReader;
 import org.apache.lucene.index.MultiFields;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.index.Terms;
 import org.apache.lucene.index.TermsEnum;
 import org.apache.lucene.search.BooleanClause;
 import org.apache.lucene.search.BooleanQuery;
-import org.apache.lucene.search.IndexSearcher;
 import org.apache.lucene.search.NumericRangeQuery;
 import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.SimpleFSDirectory;
 import org.apache.lucene.util.BytesRef;
 import twitter4j.TwitterException;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities.TweetTerm;
-import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builder.TweetWordBuilder;
+import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builder.TweetTermBuilder;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builder.TweetsIndexBuilder;
 
 /**
@@ -168,7 +163,7 @@ public class TweetsIndexManager extends IndexManager {
                 String word;
                 
                 // Initialize a builder
-                TweetWordBuilder twb = new TweetWordBuilder(2, 0.01);
+                TweetTermBuilder twb = new TweetTermBuilder(2, 0.01);
 
                 // For each term
                 while (termsEnum.next() != null) {

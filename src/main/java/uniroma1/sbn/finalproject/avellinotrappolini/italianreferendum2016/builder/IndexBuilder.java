@@ -1,14 +1,7 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.builder;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.it.ItalianAnalyzer;
@@ -20,60 +13,62 @@ import static org.apache.lucene.util.Version.LUCENE_41;
 import twitter4j.TwitterException;
 
 /**
- *
- * @author Gabriele
+ * Abstract class that collect all the methods and attributes that an 
+ * IndexBuilder needs to have and extends.
+ * 
+ * @author Gabriele Avellino
+ * @author Giovanni Trappolini
  */
 public abstract class IndexBuilder {
 
     /**
-     *
+     * Dircetory attribute where the index is going to be saved
      */
     public Directory dir;
-    //Lucene paramethers
 
     /**
-     *
+     * Lucene analizer
      */
     public Analyzer analyzer;
 
     /**
-     *
+     * Lucene index writer configuration attribute
      */
     public IndexWriterConfig cfg;
 
     /**
-     *
+     * Lucene index writer
      */
     public IndexWriter writer;
     
     /**
-     *
+     * Relative path of the source file from which extract information for the new index
      */
     public String sourcePath;
 
     /**
-     *
+     * Relative path of the new index
      */
     public String indexPath;
     
     /**
-     *
+     * Abstract method that build the index
      * @throws IOException
      * @throws TwitterException
      */
     public abstract void build() throws IOException, TwitterException;
     
     /**
-     *
-     * @param fieldName
-     * @param fieldValues
+     * Abstract method that build the index starting from a field name and its values of interest
+     * @param fieldName Field name of another index
+     * @param fieldValues Field values to match in the other index
      * @throws IOException
      */
     public abstract void build(String fieldName, ArrayList<String> fieldValues) throws IOException;
     
     /**
-     *
-     * @param dirName
+     * Set the values of the builder
+     * @param dirName dir in which inizialize the directory
      * @throws IOException
      */
     public void setBuilderParams(String dirName) throws IOException {
