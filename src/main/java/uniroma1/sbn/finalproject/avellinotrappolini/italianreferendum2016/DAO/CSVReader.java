@@ -17,7 +17,7 @@ public class CSVReader {
     private String path;
 
     /**
-     * Inizialize the path in which is saved the file and the limiter
+     * Initialize the path in which is saved the file and the limiter
      * @param delimiter delimiter to use to parse the CSV file
      * @param path CSV file path
      */

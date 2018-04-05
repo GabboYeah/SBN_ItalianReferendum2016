@@ -158,7 +158,7 @@ public abstract class IndexManager {
     }
 
     /**
-     * Return the list of a values of a specific field in a collection of documents selected by the match of fieldValues for a specific fieldName. 
+     * Return the list of values of a specific field in a collection of documents selected by the match of fieldValues for a specific fieldName. 
      * @param filterFieldName name of field to use to match documents
      * @param filterFieldValues list of values to match in the index for a specific field name
      * @param fieldOfInterest field from which get values
@@ -171,7 +171,7 @@ public abstract class IndexManager {
     }
 
     /**
-     * Return the list of a values of a specific field in a collection of documents selected by the match of fieldValues for a specific fieldName. 
+     * Return the list of values of a specific field in a collection of documents selected by the match of a single fieldValue for a specific fieldName. 
      * @param filterFieldName name of field to use to match documents
      * @param filterFieldValue value to match in the index for a specific field name
      * @param fieldOfInterest field from which get values

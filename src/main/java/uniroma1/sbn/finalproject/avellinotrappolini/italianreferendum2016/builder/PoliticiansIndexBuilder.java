@@ -28,7 +28,7 @@ public class PoliticiansIndexBuilder extends IndexBuilder {
     private StringField screenName;
 
     /**
-     * Inizialize builder parameters
+     * Initialize builder parameters
      *
      * @param sourcePath where the data to create the index are stored
      * @param indexPath where the index will be stored
@@ -106,7 +106,7 @@ public class PoliticiansIndexBuilder extends IndexBuilder {
             
             System.out.println("Search for : " + name + " " + surname + ", followers: " + followers);
             // If a user was found and it has at list a certain value of followers
-            if (!id.equals("") && followers >= 1000) {
+            if (!id.equals("") && followers >= 800) {
                 // Create a new document for the index
                 this.name.setStringValue((name + " " + surname).toLowerCase());
                 this.screenName.setStringValue(id);

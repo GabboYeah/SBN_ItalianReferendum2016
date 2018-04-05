@@ -212,6 +212,11 @@ public class Application {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        
+        
+        // lavori qua per il punto 4
+        
+        
     }
 
     private static void indexCreation() {
@@ -411,6 +416,10 @@ public class Application {
                 String[] splittedLine = line.split(" ");
                 ccsg.add(nodeMapper.getId(splittedLine[0]), nodeMapper.getId(splittedLine[1]), Integer.parseInt(splittedLine[2]));
             }
+            
+            br.close();
+            fr.close();
+
             // Compute HITS
             ArrayList<ArrayList<DoubleValues>> hitsResult = HubnessAuthority.compute(ccsg, 0.00001, worker);
             // Get authorities
@@ -423,6 +432,7 @@ public class Application {
                 printWriter.print(authority.index + " " + authority.value + "\n");
             }
             printWriter.close();
+            fileWriter.close();
 
             ArrayList<String> yesAuthorities = new ArrayList<>();
             ArrayList<String> noAuthorities = new ArrayList<>();
@@ -713,6 +723,12 @@ public class Application {
             String[] splittedLine = line.split("\t");
             g.add(nodeMapper.getId(splittedLine[0]), nodeMapper.getId(splittedLine[1]), Integer.parseInt(splittedLine[2]));
         }
+        
+        br.close();
+        isr.close();
+        gzstream.close();
+        fstream.close();
+        
         // Get all the nodes ids
         int[] ids = new int[nodes.size()];
 
@@ -726,14 +742,17 @@ public class Application {
                 i++;
             }
         }
-        // Resize the array of supporters id
+        // Resize the array of supporters id (to remove null pointers in the array).
         ids = Arrays.copyOf(ids, i);
+        System.out.println(ids.length + " " + ids[i-1]);
 
         // Extract the sub graph of the supporters
         WeightedDirectedGraph sg = SubGraph.extract(g, ids, worker);
 
         // get the connected components
         Set<Set<Integer>> comps = ConnectedComponents.rootedConnectedComponents(sg, ids, worker);
+        
+        System.out.println("CONNECTED COMPONENTS DONE");
 
         // get the one higher on
         int max = 0;
