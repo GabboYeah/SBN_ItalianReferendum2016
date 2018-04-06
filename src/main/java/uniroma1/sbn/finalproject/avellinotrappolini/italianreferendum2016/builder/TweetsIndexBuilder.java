@@ -253,14 +253,13 @@ public class TweetsIndexBuilder extends IndexBuilder {
         // Remove String "RT" used to advise that the tweet is a retweet
         String cleanedText = uncleanedText.replace("RT ", " ");
         // Remove all the urls
-        cleanedText = cleanedText.replaceAll("http:\\/\\/\\S*", " ");
-        cleanedText = cleanedText.replaceAll("http:\\/\\/\\S*$", " ");
-        cleanedText = cleanedText.replaceAll("https:\\/\\/\\S*", " ");
-        cleanedText = cleanedText.replaceAll("https:\\/\\/\\S*$", " ");
+        cleanedText = cleanedText.replaceAll("htt\\S*", " ");
+        cleanedText = cleanedText.replaceAll("htt\\S*$", " ");
+        cleanedText = cleanedText.replaceAll("\\d+\\S*", " ");
         // Remove all the hashtags
         cleanedText = cleanedText.replaceAll("#\\S*", " ");
         // Remove all the mentioned people
-        cleanedText = cleanedText.replaceAll("@\\S*", "");
+        cleanedText = cleanedText.replaceAll("@\\S*", " ");
 
         return cleanedText;
     }
