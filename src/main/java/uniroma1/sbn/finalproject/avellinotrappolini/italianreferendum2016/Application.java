@@ -1,5 +1,6 @@
 package uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.stilo.g.algo.ConnectedComponents;
 import it.stilo.g.algo.HubnessAuthority;
@@ -49,10 +50,10 @@ import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manage
 public class Application {
 
     /**
-     * main method from which the whole analysis starts and is divide in three parts:
-     * 1) Temporal Analysis
-     * 2) Identify mentions of candidates or YES/NO supporter
-     * 3) Spread of Influence
+     * main method from which the whole analysis starts and is divide in three
+     * parts: 1) Temporal Analysis 2) Identify mentions of candidates or YES/NO
+     * supporter 3) Spread of Influence
+     *
      * @param args
      */
     public static void main(String[] args) {
@@ -175,7 +176,7 @@ public class Application {
                 compElems = new ArrayList<Integer>();
                 for (int elem : comp) {
                     compElems.add(elem);
-                    String nodeName = cg.nodeMapper.getNode(elem);
+//                  String nodeName = cg.nodeMapper.getNode(elem);
 //                    if (nodeName.startsWith("#")) {
 //                        System.out.println(nodeName + ": " + Arrays.toString(noTim.getTermTimeSeries(nodeName, "hashtags", timeInterval)));
 //                    } else {
@@ -212,11 +213,6 @@ public class Application {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
-        
-        // lavori qua per il punto 4
-        
-        
     }
 
     private static void indexCreation() {
@@ -334,6 +330,75 @@ public class Application {
     private static void part1() {
 
         try {
+
+            // lavora qui per il punto 4
+            // Get the rel words from the json and put it into a map
+            ObjectMapper mapper = new ObjectMapper();
+
+            HashMap<String, ArrayList<ArrayList<String>>> representativeCoreMap;
+            representativeCoreMap = mapper.readValue(new File("output/relCores.json"),
+                    new TypeReference<HashMap<String, ArrayList<ArrayList<String>>>>() {
+            });
+
+            // Add them Yes words
+            ArrayList<ArrayList<String>> yesCore = representativeCoreMap.get("yes");
+            ArrayList<ArrayList<String>> noCore = representativeCoreMap.get("no");
+
+            int i = 0;
+            System.out.println("YES WORDS -----------------------------------");
+            for (ArrayList<String> connComp : yesCore) {
+
+                System.out.println("CORE #: " + i);
+                System.out.println(Arrays.toString(connComp.toArray()) + "\n");
+                i++;
+            }
+
+            i = 0;
+            System.out.println("NO WORDS -----------------------------------");
+            for (ArrayList<String> connComp : noCore) {
+
+                System.out.println("CORE #: " + i);
+                System.out.println(Arrays.toString(connComp.toArray()) + "\n");
+                i++;
+            }
+
+//            ObjectMapper mapper2 = new ObjectMapper();
+//
+//            HashMap<String, ArrayList<ArrayList<String>>> representativeCompMap;
+//            representativeCompMap = mapper.readValue(new File("output/relComps.json"),
+//                    new TypeReference<HashMap<String, ArrayList<ArrayList<String>>>>() {
+//            });
+//
+//            // Add them Yes words
+//            ArrayList<ArrayList<String>> yesComps = representativeCompMap.get("yes");
+//            ArrayList<ArrayList<String>> noComps = representativeCompMap.get("no");
+//
+//            i = 0;
+//            System.out.println("YES WORDS -----------------------------------");
+//            for (ArrayList<String> connComp : yesComps) {
+//                if (connComp.size() > 5) {
+//
+//                    System.out.println("COMP #: " + i);
+//                    System.out.println(Arrays.toString(connComp.toArray()) + "\n");
+//                    i++;
+//                }
+//
+//            }
+//
+//            i = 0;
+//            System.out.println("NO WORDS -----------------------------------");
+//            for (ArrayList<String> connComp : noComps) {
+//                if (connComp.size() > 5) {
+//
+//                    System.out.println("COMP #: " + i);
+//                    System.out.println(Arrays.toString(connComp.toArray()) + "\n");
+//                    i++;
+//                }
+//
+//            }
+
+            System.out.println("STOPPA QUI");
+
             // Create lists of yes and no expressionas
             ArrayList<String> yesExp = new ArrayList<String>();
             ArrayList<String> noExp = new ArrayList<String>();
@@ -416,7 +481,7 @@ public class Application {
                 String[] splittedLine = line.split(" ");
                 ccsg.add(nodeMapper.getId(splittedLine[0]), nodeMapper.getId(splittedLine[1]), Integer.parseInt(splittedLine[2]));
             }
-            
+
             br.close();
             fr.close();
 
@@ -724,12 +789,12 @@ public class Application {
             String[] splittedLine = line.split("\t");
             g.add(nodeMapper.getId(splittedLine[0]), nodeMapper.getId(splittedLine[1]), Integer.parseInt(splittedLine[2]));
         }
-        
+
         br.close();
         isr.close();
         gzstream.close();
         fstream.close();
-        
+
         // Get all the nodes ids
         int[] ids = new int[nodes.size()];
 
@@ -745,14 +810,14 @@ public class Application {
         }
         // Resize the array of supporters id (to remove null pointers in the array).
         ids = Arrays.copyOf(ids, i);
-        System.out.println(ids.length + " " + ids[i-1]);
+        System.out.println(ids.length + " " + ids[i - 1]);
 
         // Extract the sub graph of the supporters
         WeightedDirectedGraph sg = SubGraph.extract(g, ids, worker);
 
         // get the connected components
         Set<Set<Integer>> comps = ConnectedComponents.rootedConnectedComponents(sg, ids, worker);
-        
+
         System.out.println("CONNECTED COMPONENTS DONE");
 
         // get the one higher on

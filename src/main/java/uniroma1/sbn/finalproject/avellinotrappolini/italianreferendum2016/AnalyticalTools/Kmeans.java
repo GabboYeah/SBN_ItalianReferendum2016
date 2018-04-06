@@ -132,10 +132,8 @@ public class Kmeans {
         Arrays.fill(weights, 1);
         
         // Generate a stram of pseudo random numbers
-        Random rand = new Random();
+        Random rand = new Random(123);
         
-        // Set a seed
-        rand.setSeed(1);
 
         // Iterate for a number of time equal to the number of centroids needed
         for (int i = 0; i < k; i++) {

@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.Random;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.lucene.document.Document;
 import org.apache.lucene.search.ScoreDoc;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.AnalyticalTools.ComunityLPA;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.DAO.CSVReader;
@@ -36,40 +37,39 @@ public class prova {
         TweetsIndexManager tim = new TweetsIndexManager("index/AllTweetsIndex");
 
         tim.setReader("index/AllTweetsIndex");
-        
-        CSVReader readerNo = new CSVReader(",", "input/no_p.txt");
-        CSVReader readerYes = new CSVReader(",", "input/yes_p.txt");
-        
-        ArrayList<String[]> listNo = readerNo.readCSV();
-        ArrayList<String[]> listYes = readerYes.readCSV();
-        
-        for (String[] lineYes : listYes) {
-            for (String screenNameYes : lineYes) {
-                
-                ScoreDoc[] x = tim.searchTermInAField(screenNameYes, "screenName");
-                if (x.length > 500){
-                    System.out.println("NAME: " + screenNameYes + " # OF TWEETS: " + x.length);
-                    
-//                    for (ScoreDoc y : x) {
-//                        System.out.println(tim.ir.document(y.doc).get("name"));
-//                        System.out.println(tim.ir.document(y.doc).get("tweetText"));
-//                        System.out.println(tim.ir.document(y.doc).get("hashtags"));
-//                        System.out.println("------------------");
-//                    }
-                }
-                
-            }
-            
-            
-        }
 
-//        ScoreDoc[] x = tim.searchTermInAField("prodi", "tweetText");
-//        for (ScoreDoc y : x) {
-//            System.out.println(tim.ir.document(y.doc).get("screenName"));
-//            System.out.println(tim.ir.document(y.doc).get("tweetText"));
-//            System.out.println(tim.ir.document(y.doc).get("hashtags"));
-//            System.out.println("------------------");
+//        CSVReader readerNo = new CSVReader(",", "input/no_p.txt");
+//        CSVReader readerYes = new CSVReader(",", "input/yes_p.txt");
+//
+//        ArrayList<String[]> listNo = readerNo.readCSV();
+//        ArrayList<String[]> listYes = readerYes.readCSV();
+//
+//        for (String[] lineYes : listYes) {
+//            for (String screenNameYes : lineYes) {
+//
+//                ScoreDoc[] x = tim.searchTermInAField(screenNameYes, "screenName");
+//                if (x.length > 500) {
+//                    System.out.println("NAME: " + screenNameYes + " # OF TWEETS: " + x.length);
+//
+////                    for (ScoreDoc y : x) {
+////                        System.out.println(tim.ir.document(y.doc).get("name"));
+////                        System.out.println(tim.ir.document(y.doc).get("tweetText"));
+////                        System.out.println(tim.ir.document(y.doc).get("hashtags"));
+////                        System.out.println("------------------");
+////                    }
+//                }
+//
+//            }
+//
 //        }
+
+        ScoreDoc[] x = tim.searchTermInAField("htt", "tweetText");
+        for (ScoreDoc y : x) {
+            System.out.println(tim.ir.document(y.doc).get("screenName"));
+            System.out.println(tim.ir.document(y.doc).get("tweetText"));
+            System.out.println(tim.ir.document(y.doc).get("hashtags"));
+            System.out.println("------------------");
+        }
 //        TweetsIndexManager tim = new TweetsIndexManager("index/AllTweetsIndex");
 //        tim.setReader("index/AllTweetsIndex");
 //        ArrayList<Document> x = tim.searchForField("screenName", "salvoaranzulla", 1000000);
