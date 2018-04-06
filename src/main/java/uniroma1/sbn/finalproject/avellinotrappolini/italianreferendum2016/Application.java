@@ -409,7 +409,7 @@ public class Application {
 //            }
 //            System.out.println(nodeIds.size()); //450193
 
-            ccsg = new WeightedDirectedGraph(49986 + 1);
+            ccsg = new WeightedDirectedGraph(52500 + 1);
             nodeMapper = new NodesMapper<String>();
             // Creating the graph
             while ((line = br.readLine()) != null) {
