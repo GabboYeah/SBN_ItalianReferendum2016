@@ -353,19 +353,19 @@ public class Application {
             yesExp.add("#si");
             yesExp.add("#sì");
 
-            yesExp.add("#iovotono");
-            yesExp.add("#iodicono");
-            yesExp.add("#iohovotatono");
-            yesExp.add("#votano");
-            yesExp.add("#votono");
-            yesExp.add("#bastaunno");
-            yesExp.add("#bufaledelsi");
-            yesExp.add("#bufaledelsì");
-            yesExp.add("#no");
-            yesExp.add("#noivotiamono");
-            yesExp.add("#ragionidelno");
-            yesExp.add("#unitixilno");
-            yesExp.add("#votiamono");
+            noExp.add("#iovotono");
+            noExp.add("#iodicono");
+            noExp.add("#iohovotatono");
+            noExp.add("#votano");
+            noExp.add("#votono");
+            noExp.add("#bastaunno");
+            noExp.add("#bufaledelsi");
+            noExp.add("#bufaledelsì");
+            noExp.add("#no");
+            noExp.add("#noivotiamono");
+            noExp.add("#ragionidelno");
+            noExp.add("#unitixilno");
+            noExp.add("#votiamono");
 
             // Initialize a SupportersIndexManager
             SupportersIndexManager sim = new SupportersIndexManager("index/SupportersIndex", yesExp, noExp);
@@ -407,7 +407,7 @@ public class Application {
 //                nodeIds.add(nodeMapper.getId(splittedLine[0]));
 //                nodeIds.add(nodeMapper.getId(splittedLine[1]));
 //            }
-//            System.out.println(nodeIds.size()); //450193
+//            System.out.println(nodeIds.size()); // 52500
 
             ccsg = new WeightedDirectedGraph(52500 + 1);
             nodeMapper = new NodesMapper<String>();
@@ -449,6 +449,12 @@ public class Application {
                 } else {
                     // Otherwhise the vote is made by score function related to mensions expressions and constructions used
                     float finalScore = computeSupporterScore(supporter);
+                    System.err.println(supporter.get("yesPolsMentioned") + " " +
+                            supporter.get("noPolsMentioned") + " " +
+                            supporter.get("yesConstructionsUsed") + " " +
+                            supporter.get("noConstructionsUsed") + " " +
+                            supporter.get("yesExpressionsUsed") + " " + 
+                            supporter.get("noExpressionsUsed"));
                     if (finalScore > 1.45) {
                         yesAuthorities.add(supporter.get("id"));
                     } else if (finalScore < 0.7) {
