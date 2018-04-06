@@ -449,12 +449,7 @@ public class Application {
                 } else {
                     // Otherwhise the vote is made by score function related to mensions expressions and constructions used
                     float finalScore = computeSupporterScore(supporter);
-                    System.err.println(supporter.get("yesPolsMentioned") + " " +
-                            supporter.get("noPolsMentioned") + " " +
-                            supporter.get("yesConstructionsUsed") + " " +
-                            supporter.get("noConstructionsUsed") + " " +
-                            supporter.get("yesExpressionsUsed") + " " + 
-                            supporter.get("noExpressionsUsed"));
+
                     if (finalScore > 1.45) {
                         yesAuthorities.add(supporter.get("id"));
                     } else if (finalScore < 0.7) {
