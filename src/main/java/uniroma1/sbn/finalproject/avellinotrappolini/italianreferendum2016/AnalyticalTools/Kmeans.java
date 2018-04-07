@@ -132,7 +132,7 @@ public class Kmeans {
         Arrays.fill(weights, 1);
         
         // Generate a stram of pseudo random numbers
-        Random rand = new Random(123);
+        Random rand = new Random(1);
         
 
         // Iterate for a number of time equal to the number of centroids needed
@@ -300,7 +300,7 @@ public class Kmeans {
     }
     
     // Compute the sum of two vectors component by component
-    private static double[] addVectors(double[] vec1, double[] vec2) {
+    public static double[] addVectors(double[] vec1, double[] vec2) {
         // Get the vector length
         int n = vec1.length;
         // Resulting vector is initilialized

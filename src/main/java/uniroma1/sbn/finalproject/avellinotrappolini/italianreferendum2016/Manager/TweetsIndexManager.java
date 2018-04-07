@@ -201,7 +201,7 @@ public class TweetsIndexManager extends IndexManager {
     }
 
     /**
-     * Obtain the frequency of a term during regoular time intervals
+     * Obtain the frequency of a term during regular time intervals
      * @param term term of interest
      * @param field field in which search the term
      * @param stepSize time interval size

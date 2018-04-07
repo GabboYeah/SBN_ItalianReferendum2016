@@ -33,6 +33,7 @@ import java.util.zip.GZIPInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.lucene.document.Document;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.AnalyticalTools.ComunityLPA;
+import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.AnalyticalTools.Kmeans;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.AnalyticalTools.PlotTool;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities.TweetTerm;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities.ClusterGraph;
@@ -331,37 +332,77 @@ public class Application {
 
         try {
 
-            // lavora qui per il punto 4
-            // Get the rel words from the json and put it into a map
-            ObjectMapper mapper = new ObjectMapper();
+            // Create a PlotTool class
+            PlotTool plot = new PlotTool();
 
-            HashMap<String, ArrayList<ArrayList<String>>> representativeCoreMap;
-            representativeCoreMap = mapper.readValue(new File("output/relCores.json"),
-                    new TypeReference<HashMap<String, ArrayList<ArrayList<String>>>>() {
-            });
+            // Initialize a TweetsIndexManager for the index of all yes tweets based on yes pols
+            TweetsIndexManager yesTim = new TweetsIndexManager("index/AllYesTweetsIndex");
+            // Initialize a TweetsIndexManager for the index of all no tweets based on no pols
+            TweetsIndexManager noTim = new TweetsIndexManager("index/AllNoTweetsIndex");
 
-            // Add them Yes words
-            ArrayList<ArrayList<String>> yesCore = representativeCoreMap.get("yes");
-            ArrayList<ArrayList<String>> noCore = representativeCoreMap.get("no");
+            // Set the time interval to 3 hours
+            double stepSize = 3600000d;
 
-            int i = 0;
-            System.out.println("YES WORDS -----------------------------------");
-            for (ArrayList<String> connComp : yesCore) {
+            // 1st CASE: PRODI
+            // get the no frequence of Prodi, both for the hashtag and the word
+            double[] prodiTimeSeriesWord = noTim.getTermTimeSeries("prodi", "tweetText", stepSize);
+            double[] prodiTimeSeriesHash = noTim.getTermTimeSeries("#prodi", "tweetText", stepSize);
+            double[] y1 = Kmeans.addVectors(prodiTimeSeriesWord, prodiTimeSeriesHash);
+            double[] x1 = new double[y1.length];
 
-                System.out.println("CORE #: " + i);
-                System.out.println(Arrays.toString(connComp.toArray()) + "\n");
-                i++;
+            // Rescale tweets frequency data
+            for (int i = 0; i < y1.length; i++) {
+                x1[i] = i + 1;
+                y1[i] = Math.log(1 + y1[i]);
             }
 
-            i = 0;
-            System.out.println("NO WORDS -----------------------------------");
-            for (ArrayList<String> connComp : noCore) {
+            // get the no frequence of Prodi, both for the hashtag and the word
+            prodiTimeSeriesWord = yesTim.getTermTimeSeries("prodi", "tweetText", stepSize);
+            prodiTimeSeriesHash = yesTim.getTermTimeSeries("#prodi", "tweetText", stepSize);
+            double[] y2 = Kmeans.addVectors(prodiTimeSeriesWord, prodiTimeSeriesHash);
+            double[] x2 = new double[y1.length];
 
-                System.out.println("CORE #: " + i);
-                System.out.println(Arrays.toString(connComp.toArray()) + "\n");
-                i++;
+            for (int i = 0; i < y2.length; i++) {
+                x2[i] = i + 1;
+                y2[i] = Math.log(1 + y2[i]);
             }
 
+            // Create plot
+            plot.createPlot("Yes", x1, y1, "No", x2, y2, "Tweets Distribution", "Time", "Frequency");
+            plot.setBounds(0, 0D, 242D);
+            plot.setBounds(1, 0D, 5.5D);
+            plot.getPlot(1200, 600);
+
+//            // lavora qui per il punto 4
+//            // Get the rel words from the json and put it into a map
+//            ObjectMapper mapper = new ObjectMapper();
+//
+//            HashMap<String, ArrayList<ArrayList<String>>> representativeCoreMap;
+//            representativeCoreMap = mapper.readValue(new File("output/relCores.json"),
+//                    new TypeReference<HashMap<String, ArrayList<ArrayList<String>>>>() {
+//            });
+//
+//            // Add them Yes words
+//            ArrayList<ArrayList<String>> yesCore = representativeCoreMap.get("yes");
+//            ArrayList<ArrayList<String>> noCore = representativeCoreMap.get("no");
+//
+//            int i = 0;
+//            System.out.println("YES WORDS -----------------------------------");
+//            for (ArrayList<String> connComp : yesCore) {
+//
+//                System.out.println("CORE #: " + i);
+//                System.out.println(Arrays.toString(connComp.toArray()) + "\n");
+//                i++;
+//            }
+//
+//            i = 0;
+//            System.out.println("NO WORDS -----------------------------------");
+//            for (ArrayList<String> connComp : noCore) {
+//
+//                System.out.println("CORE #: " + i);
+//                System.out.println(Arrays.toString(connComp.toArray()) + "\n");
+//                i++;
+//            }
 //            ObjectMapper mapper2 = new ObjectMapper();
 //
 //            HashMap<String, ArrayList<ArrayList<String>>> representativeCompMap;
@@ -396,7 +437,6 @@ public class Application {
 //                }
 //
 //            }
-
             System.out.println("STOPPA QUI");
 
             // Create lists of yes and no expressionas
