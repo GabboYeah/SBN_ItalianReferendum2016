@@ -343,19 +343,19 @@ public class Application {
             
             // 1st CASE: PRODI
             String[] compareWordsProdi = {"prodi"};
-            ActionReaction.compareTimeSeries(compareWordsProdi);
+            ActionReaction.compareTimeSeries(compareWordsProdi, "Prodi Action Reaction");
             
             // 2nd CASE: AUSTRIAN ELECTION
             String[] compareWordsAustria = {"alexander", "vanderbell", "van", "der", "bellen", "austria"};
-            ActionReaction.compareTimeSeries(compareWordsAustria);
+            ActionReaction.compareTimeSeries(compareWordsAustria, "Austria Action Reaction");
             
             // 3rd CASE: REFERENDUM RESULT
             String[] compareWordsReferendum = {"dimissioni", "renxit", "sconfitt", "vittoria"};
-            ActionReaction.compareTimeSeries(compareWordsReferendum);
+            ActionReaction.compareTimeSeries(compareWordsReferendum, "Referendum Result Action Reaction");
             
             // 4TH CASE: ISTAT RESULT CAME OUT
             String[] compareWordsIstat = {"istat", "disoccupazione"};
-            ActionReaction.compareTimeSeries(compareWordsIstat);
+            ActionReaction.compareTimeSeries(compareWordsIstat, "ISTAT Action Reaction");
         
     }
 

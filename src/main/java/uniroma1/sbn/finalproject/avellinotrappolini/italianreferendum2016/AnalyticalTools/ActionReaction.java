@@ -15,7 +15,7 @@ import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manage
  */
 public class ActionReaction {
 
-    public static void compareTimeSeries(String[] words) {
+    public static void compareTimeSeries(String[] words, String title) {
 
         // Set the time interval to 3 hours
         double stepSize = 3600000d;
@@ -64,7 +64,7 @@ public class ActionReaction {
         }
 
         // Create plot
-        plot.createPlot("Yes", x, yYes, "No", x, yNo, "Tweets Distribution", "Time", "Frequency");
+        plot.createPlot("Yes", x, yYes, "No", x, yNo, title, "Time", "Frequency");
         plot.setBounds(0, 0D, 242D);
         plot.setBounds(1, 0D, 5.5D);
         plot.getPlot(1200, 600);
