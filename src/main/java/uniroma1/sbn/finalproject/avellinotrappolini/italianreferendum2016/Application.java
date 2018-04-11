@@ -32,6 +32,7 @@ import java.util.logging.Logger;
 import java.util.zip.GZIPInputStream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.lucene.document.Document;
+import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.AnalyticalTools.ActionReaction;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.AnalyticalTools.ComunityLPA;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.AnalyticalTools.Kmeans;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.AnalyticalTools.PlotTool;
@@ -62,6 +63,13 @@ public class Application {
                 || !Files.exists(Paths.get("output/relComps.json"))
                 || !Files.exists(Paths.get("output/relCores.json"))) {
             temporalAnalysis();
+        }
+        // below is the point 0.4
+        // just set the if statement to true if you want to run it
+        if (Boolean.FALSE) {
+            
+            actionReaction();
+            
         }
         if (!Files.exists(Paths.get("output/yesAuthorities.txt"))
                 || !Files.exists(Paths.get("output/noAuthorities.txt"))
@@ -327,51 +335,74 @@ public class Application {
         plot.setBounds(1, 0D, 5.5D);
         plot.getPlot(1200, 600);
     }
+    
+    private static void actionReaction() {
+        
+        // Below we'll compare some words time series that should correspond
+            // to identifiable action-reaction patterns.
+            
+            // 1st CASE: PRODI
+            String[] compareWordsProdi = {"prodi"};
+            ActionReaction.compareTimeSeries(compareWordsProdi);
+            
+            // 2nd CASE: AUSTRIAN ELECTION
+            String[] compareWordsAustria = {"alexander", "vanderbell", "van", "der", "bellen", "austria"};
+            ActionReaction.compareTimeSeries(compareWordsAustria);
+            
+            // 3rd CASE: REFERENDUM RESULT
+            String[] compareWordsReferendum = {"dimissioni", "renxit", "sconfitt", "vittoria"};
+            ActionReaction.compareTimeSeries(compareWordsReferendum);
+            
+            // 4TH CASE: ISTAT RESULT CAME OUT
+            String[] compareWordsIstat = {"istat", "disoccupazione"};
+            ActionReaction.compareTimeSeries(compareWordsIstat);
+        
+    }
 
     private static void part1() {
 
         try {
 
-            // Create a PlotTool class
-            PlotTool plot = new PlotTool();
-
-            // Initialize a TweetsIndexManager for the index of all yes tweets based on yes pols
-            TweetsIndexManager yesTim = new TweetsIndexManager("index/AllYesTweetsIndex");
-            // Initialize a TweetsIndexManager for the index of all no tweets based on no pols
-            TweetsIndexManager noTim = new TweetsIndexManager("index/AllNoTweetsIndex");
-
-            // Set the time interval to 3 hours
-            double stepSize = 3600000d;
-
-            // 1st CASE: PRODI
-            // get the no frequence of Prodi, both for the hashtag and the word
-            double[] prodiTimeSeriesWord = noTim.getTermTimeSeries("prodi", "tweetText", stepSize);
-            double[] prodiTimeSeriesHash = noTim.getTermTimeSeries("#prodi", "tweetText", stepSize);
-            double[] y1 = Kmeans.addVectors(prodiTimeSeriesWord, prodiTimeSeriesHash);
-            double[] x1 = new double[y1.length];
-
-            // Rescale tweets frequency data
-            for (int i = 0; i < y1.length; i++) {
-                x1[i] = i + 1;
-                y1[i] = Math.log(1 + y1[i]);
-            }
-
-            // get the no frequence of Prodi, both for the hashtag and the word
-            prodiTimeSeriesWord = yesTim.getTermTimeSeries("prodi", "tweetText", stepSize);
-            prodiTimeSeriesHash = yesTim.getTermTimeSeries("#prodi", "tweetText", stepSize);
-            double[] y2 = Kmeans.addVectors(prodiTimeSeriesWord, prodiTimeSeriesHash);
-            double[] x2 = new double[y1.length];
-
-            for (int i = 0; i < y2.length; i++) {
-                x2[i] = i + 1;
-                y2[i] = Math.log(1 + y2[i]);
-            }
-
-            // Create plot
-            plot.createPlot("Yes", x1, y1, "No", x2, y2, "Tweets Distribution", "Time", "Frequency");
-            plot.setBounds(0, 0D, 242D);
-            plot.setBounds(1, 0D, 5.5D);
-            plot.getPlot(1200, 600);
+//            // Create a PlotTool class
+//            PlotTool plot = new PlotTool();
+//
+//            // Initialize a TweetsIndexManager for the index of all yes tweets based on yes pols
+//            TweetsIndexManager yesTim = new TweetsIndexManager("index/AllYesTweetsIndex");
+//            // Initialize a TweetsIndexManager for the index of all no tweets based on no pols
+//            TweetsIndexManager noTim = new TweetsIndexManager("index/AllNoTweetsIndex");
+//
+//            // Set the time interval to 3 hours
+//            double stepSize = 3600000d;
+//
+//            // 1st CASE: PRODI
+//            // get the no frequence of Prodi, both for the hashtag and the word
+//            double[] prodiTimeSeriesWord = noTim.getTermTimeSeries("prodi", "tweetText", stepSize);
+//            double[] prodiTimeSeriesHash = noTim.getTermTimeSeries("#prodi", "hashtags", stepSize);
+//            double[] y1 = Kmeans.addVectors(prodiTimeSeriesWord, prodiTimeSeriesHash);
+//            double[] x1 = new double[y1.length];
+//
+//            // Rescale tweets frequency data
+//            for (int i = 0; i < y1.length; i++) {
+//                x1[i] = i + 1;
+//                y1[i] = Math.log(1 + y1[i]);
+//            }
+//
+//            // get the no frequence of Prodi, both for the hashtag and the word
+//            prodiTimeSeriesWord = yesTim.getTermTimeSeries("prodi", "tweetText", stepSize);
+//            prodiTimeSeriesHash = yesTim.getTermTimeSeries("#prodi", "hashtags", stepSize);
+//            double[] y2 = Kmeans.addVectors(prodiTimeSeriesWord, prodiTimeSeriesHash);
+//            double[] x2 = new double[y1.length];
+//
+//            for (int i = 0; i < y2.length; i++) {
+//                x2[i] = i + 1;
+//                y2[i] = Math.log(1 + y2[i]);
+//            }
+//
+//            // Create plot
+//            plot.createPlot("Yes", x1, y1, "No", x2, y2, "Tweets Distribution", "Time", "Frequency");
+//            plot.setBounds(0, 0D, 242D);
+//            plot.setBounds(1, 0D, 5.5D);
+//            plot.getPlot(1200, 600);
 
 //            // lavora qui per il punto 4
 //            // Get the rel words from the json and put it into a map

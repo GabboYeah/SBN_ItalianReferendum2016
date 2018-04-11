@@ -14,7 +14,7 @@ public class Kmeans {
 
     /**
      * Compute the k-means for a given group of tweet terms.
-     * @param wordsInfo terms to clusterize
+     * @param wordsInfo terms to cluster
      * @param k number of clusters
      * @param maxIt max number of iteration
      * @return Return an Array of memberships.
@@ -300,7 +300,7 @@ public class Kmeans {
     }
     
     // Compute the sum of two vectors component by component
-    public static double[] addVectors(double[] vec1, double[] vec2) {
+    private static double[] addVectors(double[] vec1, double[] vec2) {
         // Get the vector length
         int n = vec1.length;
         // Resulting vector is initilialized
