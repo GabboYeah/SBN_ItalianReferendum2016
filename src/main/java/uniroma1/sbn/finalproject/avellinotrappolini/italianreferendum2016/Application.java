@@ -1,6 +1,5 @@
 package uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import it.stilo.g.algo.ConnectedComponents;
 import it.stilo.g.algo.HubnessAuthority;
@@ -34,7 +33,6 @@ import org.apache.commons.lang3.ArrayUtils;
 import org.apache.lucene.document.Document;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.AnalyticalTools.ActionReaction;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.AnalyticalTools.ComunityLPA;
-import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.AnalyticalTools.Kmeans;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.AnalyticalTools.PlotTool;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities.TweetTerm;
 import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Entities.ClusterGraph;
@@ -64,8 +62,8 @@ public class Application {
                 || !Files.exists(Paths.get("output/relCores.json"))) {
             temporalAnalysis();
         }
-        // below is the point 0.4
-        // just set the if statement to true if you want to run it
+        // below is the Project part 0.4
+        // just set the if statement to true if you want to run it.
         if (Boolean.FALSE) {
             
             actionReaction();
