@@ -466,7 +466,6 @@ public class Application {
 //                }
 //
 //            }
-            System.out.println("STOPPA QUI");
 
             // Create lists of yes and no expressionas
             ArrayList<String> yesExp = new ArrayList<String>();
