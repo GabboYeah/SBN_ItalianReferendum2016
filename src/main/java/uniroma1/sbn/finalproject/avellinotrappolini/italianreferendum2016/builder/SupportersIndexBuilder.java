@@ -159,7 +159,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
             ScoreDoc[] results = tim.searchTermsInAField(yesPols, "screenName");
             // And create a supporter for each politician
             for (ScoreDoc doc : results) {
-                Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("screenName"));
+                Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("name"));
                 supporter.setIsAYesPol(Boolean.TRUE);
                 supporters.put(supporter.getId(), supporter);
             }
@@ -167,7 +167,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
             // Do the same for the no politicians
             results = tim.searchTermsInAField(noPols, "screenName");
             for (ScoreDoc doc : results) {
-                Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("screenName"));
+                Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("name"));
                 supporter.setIsANoPol(Boolean.TRUE);
                 supporters.put(supporter.getId(), supporter);
             }
@@ -190,7 +190,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
                     supporter.setYesPolsMentioned(supporter.getYesPolsMentioned() + 1);
                 // Otherwise create a new supporter 
                 } else {
-                    Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("screenName"));
+                    Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("name"));
                     // Set the yes pols mentioned counter to 1
                     supporter.setYesPolsMentioned(1);
                     // And add it to the map
@@ -205,7 +205,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
                     Supporter supporter = supporters.get(userId);
                     supporter.setNoPolsMentioned(supporter.getNoPolsMentioned() + 1);
                 } else {
-                    Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("screenName"));
+                    Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("name"));
                     supporter.setNoPolsMentioned(1);
                     supporters.put(supporter.getId(), supporter);
                 }
@@ -248,7 +248,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
                         Supporter supporter = supporters.get(userId);
                         supporter.setYesCostructionsUsed(supporter.getYesCostructionsUsed() + 1);
                     } else {
-                        Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("screenName"));
+                        Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("name"));
                         supporter.setYesCostructionsUsed(1);
                         supporters.put(supporter.getId(), supporter);
                     }
@@ -273,7 +273,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
                         Supporter supporter = supporters.get(userId);
                         supporter.setNoCostructionsUsed(supporter.getNoCostructionsUsed() + 1);
                     } else {
-                        Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("screenName"));
+                        Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("name"));
                         supporter.setNoCostructionsUsed(1);
                         supporters.put(supporter.getId(), supporter);
                     }
@@ -297,7 +297,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
                         Supporter supporter = supporters.get(userId);
                         supporter.setYesCostructionsUsed(supporter.getYesCostructionsUsed() + 1);
                     } else {
-                        Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("screenName"));
+                        Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("name"));
                         supporter.setYesCostructionsUsed(1);
                         supporters.put(supporter.getId(), supporter);
                     }
@@ -311,7 +311,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
                         Supporter supporter = supporters.get(userId);
                         supporter.setNoCostructionsUsed(supporter.getNoCostructionsUsed() + 1);
                     } else {
-                        Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("screenName"));
+                        Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("name"));
                         supporter.setNoCostructionsUsed(1);
                         supporters.put(supporter.getId(), supporter);
                     }
@@ -331,7 +331,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
                     Supporter supporter = supporters.get(userId);
                     supporter.setYesExpressionsUsed(supporter.getYesExpressionsUsed() + 1);
                 } else {
-                    Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("screenName"));
+                    Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("name"));
                     supporter.setYesExpressionsUsed(1);
                     supporters.put(supporter.getId(), supporter);
                 }
@@ -344,7 +344,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
                     Supporter supporter = supporters.get(userId);
                     supporter.setNoExpressionsUsed(supporter.getNoExpressionsUsed() + 1);
                 } else {
-                    Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("screenName"));
+                    Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("name"));
                     supporter.setNoExpressionsUsed(1);
                     supporters.put(supporter.getId(), supporter);
                 }

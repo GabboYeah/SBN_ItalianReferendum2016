@@ -65,9 +65,9 @@ public class Application {
         // below is the Project part 0.4
         // just set the if statement to true if you want to run it.
         if (Boolean.FALSE) {
-            
+
             actionReaction();
-            
+
         }
         if (!Files.exists(Paths.get("output/yesAuthorities.txt"))
                 || !Files.exists(Paths.get("output/noAuthorities.txt"))
@@ -333,34 +333,33 @@ public class Application {
         plot.setBounds(1, 0D, 5.5D);
         plot.getPlot(1200, 600);
     }
-    
+
     private static void actionReaction() {
-        
+
         // Below we'll compare some words time series that should correspond
-            // to identifiable action-reaction patterns.
-            
-            // 1st CASE: PRODI
-            String[] compareWordsProdi = {"prodi"};
-            ActionReaction.compareTimeSeries(compareWordsProdi, "Prodi Action Reaction");
-            
-            // 2nd CASE: AUSTRIAN ELECTION
-            String[] compareWordsAustria = {"alexander", "vanderbell", "van", "der", "bellen", "austria"};
-            ActionReaction.compareTimeSeries(compareWordsAustria, "Austria Action Reaction");
-            
-            // 3rd CASE: REFERENDUM RESULT
-            String[] compareWordsReferendum = {"dimissioni", "renxit", "sconfitt", "vittoria"};
-            ActionReaction.compareTimeSeries(compareWordsReferendum, "Referendum Result Action Reaction");
-            
-            // 4TH CASE: ISTAT RESULT CAME OUT
-            String[] compareWordsIstat = {"istat", "disoccupazione"};
-            ActionReaction.compareTimeSeries(compareWordsIstat, "ISTAT Action Reaction");
-        
+        // to identifiable action-reaction patterns.
+        // 1st CASE: PRODI
+        String[] compareWordsProdi = {"prodi"};
+        ActionReaction.compareTimeSeries(compareWordsProdi, "Prodi Action Reaction");
+
+        // 2nd CASE: AUSTRIAN ELECTION
+        String[] compareWordsAustria = {"alexander", "vanderbell", "van", "der", "bellen", "austria"};
+        ActionReaction.compareTimeSeries(compareWordsAustria, "Austria Action Reaction");
+
+        // 3rd CASE: REFERENDUM RESULT
+        String[] compareWordsReferendum = {"dimissioni", "renxit", "sconfitt", "vittoria"};
+        ActionReaction.compareTimeSeries(compareWordsReferendum, "Referendum Result Action Reaction");
+
+        // 4TH CASE: ISTAT RESULT CAME OUT
+        String[] compareWordsIstat = {"istat", "disoccupazione"};
+        ActionReaction.compareTimeSeries(compareWordsIstat, "ISTAT Action Reaction");
+
     }
 
     private static void part1() {
 
         try {
-            
+
             // Create lists of yes and no expressionas
             ArrayList<String> yesExp = new ArrayList<String>();
             ArrayList<String> noExp = new ArrayList<String>();
@@ -444,6 +443,14 @@ public class Application {
                 ccsg.add(nodeMapper.getId(splittedLine[0]), nodeMapper.getId(splittedLine[1]), Integer.parseInt(splittedLine[2]));
             }
 
+//            HashMap<String, String> nameMapper = new HashMap<>();
+//            TweetsIndexManager tim = new TweetsIndexManager("index/AllTweetsIndex");
+//            
+//            for(int i = 1; i < ccsg.size; i++){
+//                String id = nodeMapper.getNode(i);
+//                String name = tim.searchFilteredValueField("userId", id, "name", 1).get(0);
+//                nameMapper.put(id, name);
+//            }
             br.close();
             fr.close();
 
@@ -456,33 +463,33 @@ public class Application {
             PrintWriter printWriter = new PrintWriter(fileWriter);
 
             for (DoubleValues authority : authorities) {
-                printWriter.print(authority.index + " " + authority.value + "\n");
+                printWriter.print(authority.index + "; " + authority.value + "\n");
             }
             printWriter.close();
             fileWriter.close();
 
-            ArrayList<String> yesAuthorities = new ArrayList<>();
-            ArrayList<String> noAuthorities = new ArrayList<>();
-            ArrayList<String> unclassifiedAuthorities = new ArrayList<>();
+            HashMap<String, String> yesAuthorities = new HashMap<String, String>();
+            HashMap<String, String> noAuthorities = new HashMap<String, String>();
+            HashMap<String, String> unclassifiedAuthorities = new HashMap<String, String>();
             // Calculate the vote of the authorities
             for (int i = 0; i < (1000 < authorities.size() ? 1000 : authorities.size()); i++) {
                 // get the authority
                 Document supporter = sim.searchForField("id", nodeMapper.getNode(authorities.get(i).index), 10).get(0);
                 // If it's a politician the vote is clear
                 if (Integer.parseInt(supporter.get("isAYesPol")) == 1) {
-                    yesAuthorities.add(supporter.get("id"));
+                    yesAuthorities.put(supporter.get("id"), supporter.get("name"));
                 } else if (Integer.parseInt(supporter.get("isANoPol")) == 1) {
-                    noAuthorities.add(supporter.get("id"));
+                    noAuthorities.put(supporter.get("id"), supporter.get("name"));
                 } else {
                     // Otherwhise the vote is made by score function related to mensions expressions and constructions used
                     float finalScore = computeSupporterScore(supporter);
 
                     if (finalScore > 1.45) {
-                        yesAuthorities.add(supporter.get("id"));
+                        yesAuthorities.put(supporter.get("id"), supporter.get("name"));
                     } else if (finalScore < 0.7) {
-                        noAuthorities.add(supporter.get("id"));
+                        noAuthorities.put(supporter.get("id"), supporter.get("name"));
                     } else {
-                        unclassifiedAuthorities.add(supporter.get("id"));
+                        unclassifiedAuthorities.put(supporter.get("id"), supporter.get("name"));
                     }
                 }
             }
@@ -494,29 +501,35 @@ public class Application {
             fileWriter = new FileWriter("output/yesAuthorities.txt");
             printWriter = new PrintWriter(fileWriter);
 
-            for (String authority : yesAuthorities) {
-                printWriter.print(authority + " " + nodeMapper.getId(authority) + "\n");
+            for (String authorityKey : yesAuthorities.keySet()) {
+                printWriter.print(authorityKey + "; "
+                        + yesAuthorities.get(authorityKey) + "; "
+                        + nodeMapper.getId(authorityKey) + "\n");
             }
             printWriter.close();
             // Save no authorities
             fileWriter = new FileWriter("output/noAuthorities.txt");
             printWriter = new PrintWriter(fileWriter);
 
-            for (String authority : noAuthorities) {
-                printWriter.print(authority + " " + nodeMapper.getId(authority) + "\n");
+            for (String authorityKey : noAuthorities.keySet()) {
+                printWriter.print(authorityKey + "; "
+                        + noAuthorities.get(authorityKey) + "; "
+                        + nodeMapper.getId(authorityKey) + "\n");
             }
             printWriter.close();
             // Save unclassified authorities
             fileWriter = new FileWriter("output/unclassifiedAuthorities.txt");
             printWriter = new PrintWriter(fileWriter);
 
-            for (String authority : unclassifiedAuthorities) {
-                printWriter.print(authority + " " + nodeMapper.getId(authority) + "\n");
+            for (String authorityKey : unclassifiedAuthorities.keySet()) {
+                printWriter.print(authorityKey + "; "
+                        + unclassifiedAuthorities.get(authorityKey) + "; "
+                        + nodeMapper.getId(authorityKey) + "\n");
             }
             printWriter.close();
             // Do the same for hubs
-            ArrayList<String> yesHubs = new ArrayList<>();
-            ArrayList<String> noHubs = new ArrayList<>();
+            HashMap<String, String> yesHubs = new HashMap<String, String>();
+            HashMap<String, String> noHubs = new HashMap<String, String>();
 
             ArrayList<DoubleValues> hubs = hitsResult.get(1);
             // Save all the hubs
@@ -524,7 +537,7 @@ public class Application {
             printWriter = new PrintWriter(fileWriter);
 
             for (DoubleValues hub : hubs) {
-                printWriter.print(hub.index + " " + hub.value + "\n");
+                printWriter.print(hub.index + "; " + hub.value + "\n");
             }
             printWriter.close();
 
@@ -532,17 +545,17 @@ public class Application {
             for (int i = 0; i < hubs.size(); i++) {
                 Document supporter = sim.searchForField("id", nodeMapper.getNode(hubs.get(i).index), 10).get(0);
                 // If it is a politician the vote is clear
-                if (Integer.parseInt(supporter.get("isAYesPol")) == 1) {
-                    yesHubs.add(supporter.get("id"));
-                } else if (Integer.parseInt(supporter.get("isANoPol")) == 1) {
-                    noHubs.add(supporter.get("id"));
+                if (Integer.parseInt(supporter.get("isAYesPol")) == 1 && yesHubs.size() < 500) {
+                    yesHubs.put(supporter.get("id"), supporter.get("name"));
+                } else if (Integer.parseInt(supporter.get("isANoPol")) == 1 && noHubs.size() < 500) {
+                    noHubs.put(supporter.get("id"), supporter.get("name"));
                 } else {
                     // otherwise compute it
                     float finalScore = computeSupporterScore(supporter);
-                    if (finalScore > 1.45) {
-                        yesHubs.add(supporter.get("id"));
-                    } else if (finalScore < 0.7) {
-                        noHubs.add(supporter.get("id"));
+                    if (finalScore > 1.45 && yesHubs.size() < 500) {
+                        yesHubs.put(supporter.get("id"), supporter.get("name"));
+                    } else if (finalScore < 0.7 && noHubs.size() < 500) {
+                        noHubs.put(supporter.get("id"), supporter.get("name"));
                     }
                 }
                 // if the max number of authorities is reached stop
@@ -551,28 +564,25 @@ public class Application {
                 }
             }
 
-            List<String> yesHubsList = yesHubs.subList(0, (500 < yesHubs.size() ? 500 : yesHubs.size()));
-            List<String> noHubsList = noHubs.subList(0, (500 < noHubs.size() ? 500 : noHubs.size()));
-
             fileWriter = new FileWriter("output/yesHubs.txt");
             printWriter = new PrintWriter(fileWriter);
             // Save yes hubs
-            for (String hub : yesHubs) {
-                printWriter.print(hub + " " + nodeMapper.getId(hub) + "\n");
+            for (String hubKey : yesHubs.keySet()) {
+                printWriter.print(hubKey + "; " + yesHubs.get(hubKey) + "; " + nodeMapper.getId(hubKey) + "\n");
             }
             printWriter.close();
 
             fileWriter = new FileWriter("output/noHubs.txt");
             printWriter = new PrintWriter(fileWriter);
             // Save no hubs
-            for (String hub : noHubs) {
-                printWriter.print(hub + " " + nodeMapper.getId(hub) + "\n");
+            for (String hubKey : noHubs.keySet()) {
+                printWriter.print(hubKey + "; " + noHubs.get(hubKey) + "; " + nodeMapper.getId(hubKey) + "\n");
             }
             printWriter.close();
 
             System.out.println();
-            System.out.println("YES HUBS: " + yesHubsList.size());
-            System.out.println("NO HUBS: " + noHubsList.size());
+            System.out.println("YES HUBS: " + yesHubs.size());
+            System.out.println("NO HUBS: " + noHubs.size());
 
             // Quantiles study
 //            int[] degreeInDistribution = new int[ccsg.size];
@@ -611,50 +621,67 @@ public class Application {
 //            System.out.println("IN DEGREE 25%:  " + degreeInDistribution[(int) ccsg.size / 4]);
 //            System.out.println("OUT DEGREE 25%: " + degreeOutDistribution[(int) ccsg.size / 4]);
 //            System.out.println("SUM DEGREE 25%: " + degreeSumDistribution[(int) ccsg.size / 4]);
-            // Check which nodes to mantain considering their in and out degree
-            ArrayList<Integer> nodesToMantain = new ArrayList<>();
-            for (int i = 0; i < ccsg.size; i++) {
-                if (ccsg.out[i] != null && ccsg.out[i].length > 35) {
-                    if (ccsg.in[i] != null && ccsg.in[i].length > 28) {
-                        nodesToMantain.add(i);
+            List<DoubleValues> brokers;
+            dir = Paths.get("output/brokers.txt");
+
+            if (!Files.exists(dir)) {
+                // Check which nodes to mantain considering their in and out degree
+                ArrayList<Integer> nodesToMantain = new ArrayList<>();
+                for (int i = 0; i < ccsg.size; i++) {
+                    if (ccsg.out[i] != null && ccsg.out[i].length > 35) {
+                        if (ccsg.in[i] != null && ccsg.in[i].length > 28) {
+                            nodesToMantain.add(i);
+                        }
                     }
                 }
-            }
-            // Get the percentage of nodes removed
-            float nodesRemoved = (float) (ccsg.size - nodesToMantain.size()) / ccsg.size;
-            System.out.println("NODES REMOVED: " + nodesRemoved);
-            // Convert to array
-            int[] nodesMantained = ArrayUtils.toPrimitive(nodesToMantain.toArray(new Integer[nodesToMantain.size()]));
-            // Extract the subgraph
-            WeightedDirectedGraph gkpp = SubGraph.extract(ccsg, nodesMantained, worker);
-            // Compute kpp
-            List<DoubleValues> brokers = KppNeg.searchBroker(gkpp, nodesMantained, worker);
-            // Write the brokers
-            fileWriter = new FileWriter("output/brokers.txt");
-            printWriter = new PrintWriter(fileWriter);
+                // Get the percentage of nodes removed
+                float nodesRemoved = (float) (ccsg.size - nodesToMantain.size()) / ccsg.size;
+                System.out.println("NODES REMOVED: " + nodesRemoved);
+                // Convert to array
+                int[] nodesMantained = ArrayUtils.toPrimitive(nodesToMantain.toArray(new Integer[nodesToMantain.size()]));
+                // Extract the subgraph
+                WeightedDirectedGraph gkpp = SubGraph.extract(ccsg, nodesMantained, worker);
+                // Compute kpp
+                brokers = KppNeg.searchBroker(gkpp, nodesMantained, worker);
+                // Write the brokers
+                fileWriter = new FileWriter("output/brokers.txt");
+                printWriter = new PrintWriter(fileWriter);
 
-            for (DoubleValues broker : brokers) {
-                printWriter.print(broker.index + " " + broker.value + "\n");
-            }
-            printWriter.close();
+                for (DoubleValues broker : brokers) {
+                    printWriter.print(broker.index + " " + broker.value + "\n");
+                }
+                printWriter.close();
 
-            ArrayList<String> yesBrokers = new ArrayList<>();
-            ArrayList<String> noBrokers = new ArrayList<>();
+            } else {
+                fr = new FileReader("output/brokers.txt");
+                br = new BufferedReader(fr);
+
+                brokers = new ArrayList<DoubleValues>();
+                while ((line = br.readLine()) != null) {
+                    String[] splittedLine = line.split(" ");
+                    brokers.add(new DoubleValues(Integer.parseInt(splittedLine[0]), Double.parseDouble(splittedLine[1])));
+                }
+                br.close();
+                fr.close();
+            }
+
+            HashMap<String, String> yesBrokers = new HashMap<String, String>();
+            HashMap<String, String> noBrokers = new HashMap<String, String>();
             // Compute vote of the brokers
             for (int i = 0; i < brokers.size(); i++) {
                 Document supporter = sim.searchForField("id", nodeMapper.getNode(brokers.get(i).index), 10).get(0);
                 // If he is a politician
-                if (Integer.parseInt(supporter.get("isAYesPol")) == 1) {
-                    yesBrokers.add(supporter.get("id"));
-                } else if (Integer.parseInt(supporter.get("isANoPol")) == 1) {
-                    noBrokers.add(supporter.get("id"));
+                if (Integer.parseInt(supporter.get("isAYesPol")) == 1 && yesBrokers.size() < 500) {
+                    yesBrokers.put(supporter.get("id"), supporter.get("name"));
+                } else if (Integer.parseInt(supporter.get("isANoPol")) == 1 && noBrokers.size() < 500) {
+                    noBrokers.put(supporter.get("id"), supporter.get("name"));
                 } else {
                     // Otherwise compute the score
                     float finalScore = computeSupporterScore(supporter);
-                    if (finalScore > 1.45) {
-                        yesBrokers.add(supporter.get("id"));
-                    } else if (finalScore < 0.7) {
-                        noBrokers.add(supporter.get("id"));
+                    if (finalScore > 1.45 && yesBrokers.size() < 500) {
+                        yesBrokers.put(supporter.get("id"), supporter.get("name"));
+                    } else if (finalScore < 0.7 && noBrokers.size() < 500) {
+                        noBrokers.put(supporter.get("id"), supporter.get("name"));
                     }
                 }
                 // if the max number of authorities is reached stop
@@ -666,25 +693,26 @@ public class Application {
             fileWriter = new FileWriter("output/yesBrokers.txt");
             printWriter = new PrintWriter(fileWriter);
             // Save yes brokers
-            for (String broker : yesBrokers) {
-                printWriter.print(broker + " " + nodeMapper.getId(broker) + "\n");
+            for (String brokerKey : yesBrokers.keySet()) {
+                printWriter.print(brokerKey + "; " +
+                                  yesBrokers.get(brokerKey) + "; " +
+                                  nodeMapper.getId(brokerKey) + "\n");
             }
             printWriter.close();
 
             fileWriter = new FileWriter("output/noBrokers.txt");
             printWriter = new PrintWriter(fileWriter);
             // Save no brokers
-            for (String broker : noBrokers) {
-                printWriter.print(broker + " " + nodeMapper.getId(broker) + "\n");
+            for (String brokerKey : noBrokers.keySet()) {
+                printWriter.print(brokerKey + "; " +
+                                  noBrokers.get(brokerKey) + "; " +
+                                  nodeMapper.getId(brokerKey) + "\n");
             }
             printWriter.close();
 
-            List<String> yesBrokersList = yesBrokers.subList(0, (500 < yesBrokers.size() ? 500 : yesBrokers.size()));
-            List<String> noBrokersList = noBrokers.subList(0, (500 < noBrokers.size() ? 500 : noBrokers.size()));
-
             System.out.println();
-            System.out.println("YES Brokers: " + yesBrokersList.size());
-            System.out.println("NO Brokers: " + noBrokersList.size());
+            System.out.println("YES Brokers: " + yesBrokers.size());
+            System.out.println("NO Brokers: " + noBrokers.size());
 
         } catch (FileNotFoundException ex) {
             Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
@@ -772,7 +800,6 @@ public class Application {
         }
         // Resize the array of supporters id (to remove null pointers in the array).
         ids = Arrays.copyOf(ids, i);
-        System.out.println(ids.length + " " + ids[i - 1]);
 
         // Extract the sub graph of the supporters
         WeightedDirectedGraph sg = SubGraph.extract(g, ids, worker);
@@ -941,7 +968,7 @@ public class Application {
             String line;
 
             while ((line = br.readLine()) != null) {
-                int id = Integer.parseInt(line.split(" ")[1]);
+                int id = Integer.parseInt(line.split("; ")[2]);
                 initLabel[id] = 1;
             }
             br.close();
@@ -950,7 +977,7 @@ public class Application {
             br = new BufferedReader(fr);
 
             while ((line = br.readLine()) != null) {
-                int id = Integer.parseInt(line.split(" ")[1]);
+                int id = Integer.parseInt(line.split("; ")[2]);
                 initLabel[id] = 2;
             }
             br.close();
