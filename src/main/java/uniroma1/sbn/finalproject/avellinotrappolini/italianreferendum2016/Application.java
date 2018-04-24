@@ -360,113 +360,7 @@ public class Application {
     private static void part1() {
 
         try {
-
-//            // Create a PlotTool class
-//            PlotTool plot = new PlotTool();
-//
-//            // Initialize a TweetsIndexManager for the index of all yes tweets based on yes pols
-//            TweetsIndexManager yesTim = new TweetsIndexManager("index/AllYesTweetsIndex");
-//            // Initialize a TweetsIndexManager for the index of all no tweets based on no pols
-//            TweetsIndexManager noTim = new TweetsIndexManager("index/AllNoTweetsIndex");
-//
-//            // Set the time interval to 3 hours
-//            double stepSize = 3600000d;
-//
-//            // 1st CASE: PRODI
-//            // get the no frequence of Prodi, both for the hashtag and the word
-//            double[] prodiTimeSeriesWord = noTim.getTermTimeSeries("prodi", "tweetText", stepSize);
-//            double[] prodiTimeSeriesHash = noTim.getTermTimeSeries("#prodi", "hashtags", stepSize);
-//            double[] y1 = Kmeans.addVectors(prodiTimeSeriesWord, prodiTimeSeriesHash);
-//            double[] x1 = new double[y1.length];
-//
-//            // Rescale tweets frequency data
-//            for (int i = 0; i < y1.length; i++) {
-//                x1[i] = i + 1;
-//                y1[i] = Math.log(1 + y1[i]);
-//            }
-//
-//            // get the no frequence of Prodi, both for the hashtag and the word
-//            prodiTimeSeriesWord = yesTim.getTermTimeSeries("prodi", "tweetText", stepSize);
-//            prodiTimeSeriesHash = yesTim.getTermTimeSeries("#prodi", "hashtags", stepSize);
-//            double[] y2 = Kmeans.addVectors(prodiTimeSeriesWord, prodiTimeSeriesHash);
-//            double[] x2 = new double[y1.length];
-//
-//            for (int i = 0; i < y2.length; i++) {
-//                x2[i] = i + 1;
-//                y2[i] = Math.log(1 + y2[i]);
-//            }
-//
-//            // Create plot
-//            plot.createPlot("Yes", x1, y1, "No", x2, y2, "Tweets Distribution", "Time", "Frequency");
-//            plot.setBounds(0, 0D, 242D);
-//            plot.setBounds(1, 0D, 5.5D);
-//            plot.getPlot(1200, 600);
-
-//            // lavora qui per il punto 4
-//            // Get the rel words from the json and put it into a map
-//            ObjectMapper mapper = new ObjectMapper();
-//
-//            HashMap<String, ArrayList<ArrayList<String>>> representativeCoreMap;
-//            representativeCoreMap = mapper.readValue(new File("output/relCores.json"),
-//                    new TypeReference<HashMap<String, ArrayList<ArrayList<String>>>>() {
-//            });
-//
-//            // Add them Yes words
-//            ArrayList<ArrayList<String>> yesCore = representativeCoreMap.get("yes");
-//            ArrayList<ArrayList<String>> noCore = representativeCoreMap.get("no");
-//
-//            int i = 0;
-//            System.out.println("YES WORDS -----------------------------------");
-//            for (ArrayList<String> connComp : yesCore) {
-//
-//                System.out.println("CORE #: " + i);
-//                System.out.println(Arrays.toString(connComp.toArray()) + "\n");
-//                i++;
-//            }
-//
-//            i = 0;
-//            System.out.println("NO WORDS -----------------------------------");
-//            for (ArrayList<String> connComp : noCore) {
-//
-//                System.out.println("CORE #: " + i);
-//                System.out.println(Arrays.toString(connComp.toArray()) + "\n");
-//                i++;
-//            }
-//            ObjectMapper mapper2 = new ObjectMapper();
-//
-//            HashMap<String, ArrayList<ArrayList<String>>> representativeCompMap;
-//            representativeCompMap = mapper.readValue(new File("output/relComps.json"),
-//                    new TypeReference<HashMap<String, ArrayList<ArrayList<String>>>>() {
-//            });
-//
-//            // Add them Yes words
-//            ArrayList<ArrayList<String>> yesComps = representativeCompMap.get("yes");
-//            ArrayList<ArrayList<String>> noComps = representativeCompMap.get("no");
-//
-//            i = 0;
-//            System.out.println("YES WORDS -----------------------------------");
-//            for (ArrayList<String> connComp : yesComps) {
-//                if (connComp.size() > 5) {
-//
-//                    System.out.println("COMP #: " + i);
-//                    System.out.println(Arrays.toString(connComp.toArray()) + "\n");
-//                    i++;
-//                }
-//
-//            }
-//
-//            i = 0;
-//            System.out.println("NO WORDS -----------------------------------");
-//            for (ArrayList<String> connComp : noComps) {
-//                if (connComp.size() > 5) {
-//
-//                    System.out.println("COMP #: " + i);
-//                    System.out.println(Arrays.toString(connComp.toArray()) + "\n");
-//                    i++;
-//                }
-//
-//            }
-
+            
             // Create lists of yes and no expressionas
             ArrayList<String> yesExp = new ArrayList<String>();
             ArrayList<String> noExp = new ArrayList<String>();
@@ -720,8 +614,8 @@ public class Application {
             // Check which nodes to mantain considering their in and out degree
             ArrayList<Integer> nodesToMantain = new ArrayList<>();
             for (int i = 0; i < ccsg.size; i++) {
-                if (ccsg.out[i] != null && ccsg.out[i].length > 28) {
-                    if (ccsg.in[i] != null && ccsg.in[i].length > 35) {
+                if (ccsg.out[i] != null && ccsg.out[i].length > 35) {
+                    if (ccsg.in[i] != null && ccsg.in[i].length > 28) {
                         nodesToMantain.add(i);
                     }
                 }
@@ -855,7 +749,7 @@ public class Application {
         // Populate the graph
         while ((line = br.readLine()) != null) {
             String[] splittedLine = line.split("\t");
-            g.add(nodeMapper.getId(splittedLine[0]), nodeMapper.getId(splittedLine[1]), Integer.parseInt(splittedLine[2]));
+            g.add(nodeMapper.getId(splittedLine[1]), nodeMapper.getId(splittedLine[0]), Integer.parseInt(splittedLine[2]));
         }
 
         br.close();
@@ -947,7 +841,7 @@ public class Application {
             // import the entire graph
             while ((line = br.readLine()) != null) {
                 String[] splittedLine = line.split("\t");
-                g.add(nodeMapper.getId(splittedLine[0]), nodeMapper.getId(splittedLine[1]), Integer.parseInt(splittedLine[2]));
+                g.add(nodeMapper.getId(splittedLine[1]), nodeMapper.getId(splittedLine[0]), Integer.parseInt(splittedLine[2]));
             }
             // Get the number of workers
             int worker = (int) (Runtime.getRuntime().availableProcessors());
