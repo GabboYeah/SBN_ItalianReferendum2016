@@ -440,7 +440,7 @@ public class Application {
             // Creating the graph
             while ((line = br.readLine()) != null) {
                 String[] splittedLine = line.split(" ");
-                ccsg.add(nodeMapper.getId(splittedLine[0]), nodeMapper.getId(splittedLine[1]), Integer.parseInt(splittedLine[2]));
+                ccsg.add(nodeMapper.getId(splittedLine[1]), nodeMapper.getId(splittedLine[0]), Integer.parseInt(splittedLine[2]));
             }
 
 //            HashMap<String, String> nameMapper = new HashMap<>();
@@ -777,7 +777,7 @@ public class Application {
         // Populate the graph
         while ((line = br.readLine()) != null) {
             String[] splittedLine = line.split("\t");
-            g.add(nodeMapper.getId(splittedLine[1]), nodeMapper.getId(splittedLine[0]), Integer.parseInt(splittedLine[2]));
+            g.add(nodeMapper.getId(splittedLine[0]), nodeMapper.getId(splittedLine[1]), Integer.parseInt(splittedLine[2]));
         }
 
         br.close();
