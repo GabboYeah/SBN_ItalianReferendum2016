@@ -1,5 +1,5 @@
 # SBN_ItalianReferendum2016
-A social and behaviour network study about tweets network stream during the referendum period (4 december 2016).
+A social and behaviour network study about tweets network stream during the referendum period (4th december 2016).
 
 
 ### User Guide:
