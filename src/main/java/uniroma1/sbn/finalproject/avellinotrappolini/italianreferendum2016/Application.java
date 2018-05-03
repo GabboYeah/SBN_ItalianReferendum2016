@@ -403,6 +403,8 @@ public class Application {
             } else {
                 System.out.println(dir.toString() + ": Index already created!");
             }
+            //sim.getAllSupportersTweets();
+            
             // Get all supporters ids and save them in a list
             ArrayList<String> nodes = sim.getFieldValuesList(sim.getAllDocs(), "id");
 
@@ -433,9 +435,9 @@ public class Application {
 //                nodeIds.add(nodeMapper.getId(splittedLine[0]));
 //                nodeIds.add(nodeMapper.getId(splittedLine[1]));
 //            }
-//            System.out.println(nodeIds.size()); // 52500
+//            System.out.println(nodeIds.size()); // 50600
 
-            ccsg = new WeightedDirectedGraph(52500 + 1);
+            ccsg = new WeightedDirectedGraph(50600 + 1);
             nodeMapper = new NodesMapper<String>();
             // Creating the graph
             while ((line = br.readLine()) != null) {
@@ -454,13 +456,49 @@ public class Application {
             br.close();
             fr.close();
 
+            // Supporters            
+            HashMap<String, String> yesSup = new HashMap<String, String>();
+            HashMap<String, String> noSup = new HashMap<String, String>();
+            
+            TweetsIndexManager tim = new TweetsIndexManager("index/AllTweetsIndex");
+
+            for(int i = 1; i < ccsg.size; i++){
+                ArrayList<String> row = new ArrayList<>();
+                Document supporter = sim.searchForField("id", nodeMapper.getNode(i), 10).get(0);
+                if (supporter.get("vote").equals("yes")) {
+                    yesSup.put(supporter.get("id"), supporter.get("name"));
+                } else if (supporter.get("vote").equals("no")) {
+                    noSup.put(supporter.get("id"), supporter.get("name"));
+                }
+            }
+            
+            FileWriter fileWriter = new FileWriter("output/yesSup.txt");
+            PrintWriter printWriter = new PrintWriter(fileWriter);
+
+            for (String supKey : yesSup.keySet()) {
+                printWriter.print(supKey + "; "
+                        + yesSup.get(supKey) + "; "
+                        + nodeMapper.getId(supKey) + "\n");
+            }
+            printWriter.close();
+            
+            fileWriter = new FileWriter("output/noSup.txt");
+            printWriter = new PrintWriter(fileWriter);
+
+            for (String supKey : noSup.keySet()) {
+                printWriter.print(supKey + "; "
+                        + noSup.get(supKey) + "; "
+                        + nodeMapper.getId(supKey) + "\n");
+            }
+            printWriter.close();
+            
             // Compute HITS
             ArrayList<ArrayList<DoubleValues>> hitsResult = HubnessAuthority.compute(ccsg, 0.00001, worker);
             // Get authorities
             ArrayList<DoubleValues> authorities = hitsResult.get(0);
             // Save authorities
-            FileWriter fileWriter = new FileWriter("output/authorities.txt");
-            PrintWriter printWriter = new PrintWriter(fileWriter);
+            fileWriter = new FileWriter("output/authorities.txt");
+            printWriter = new PrintWriter(fileWriter);
 
             for (DoubleValues authority : authorities) {
                 printWriter.print(authority.index + "; " + authority.value + "\n");
@@ -471,26 +509,16 @@ public class Application {
             HashMap<String, String> yesAuthorities = new HashMap<String, String>();
             HashMap<String, String> noAuthorities = new HashMap<String, String>();
             HashMap<String, String> unclassifiedAuthorities = new HashMap<String, String>();
-            // Calculate the vote of the authorities
+            // Get the vote of the authorities
             for (int i = 0; i < (1000 < authorities.size() ? 1000 : authorities.size()); i++) {
                 // get the authority
                 Document supporter = sim.searchForField("id", nodeMapper.getNode(authorities.get(i).index), 10).get(0);
-                // If it's a politician the vote is clear
-                if (Integer.parseInt(supporter.get("isAYesPol")) == 1) {
+                if (supporter.get("vote").equals("yes")) {
                     yesAuthorities.put(supporter.get("id"), supporter.get("name"));
-                } else if (Integer.parseInt(supporter.get("isANoPol")) == 1) {
+                } else if (supporter.get("vote").equals("no")) {
                     noAuthorities.put(supporter.get("id"), supporter.get("name"));
                 } else {
-                    // Otherwhise the vote is made by score function related to mensions expressions and constructions used
-                    float finalScore = computeSupporterScore(supporter);
-
-                    if (finalScore > 1.45) {
-                        yesAuthorities.put(supporter.get("id"), supporter.get("name"));
-                    } else if (finalScore < 0.7) {
-                        noAuthorities.put(supporter.get("id"), supporter.get("name"));
-                    } else {
-                        unclassifiedAuthorities.put(supporter.get("id"), supporter.get("name"));
-                    }
+                    unclassifiedAuthorities.put(supporter.get("id"), supporter.get("name"));
                 }
             }
 
@@ -545,18 +573,10 @@ public class Application {
             for (int i = 0; i < hubs.size(); i++) {
                 Document supporter = sim.searchForField("id", nodeMapper.getNode(hubs.get(i).index), 10).get(0);
                 // If it is a politician the vote is clear
-                if (Integer.parseInt(supporter.get("isAYesPol")) == 1 && yesHubs.size() < 500) {
+                if (supporter.get("vote").equals("yes") && yesHubs.size() < 500) {
                     yesHubs.put(supporter.get("id"), supporter.get("name"));
-                } else if (Integer.parseInt(supporter.get("isANoPol")) == 1 && noHubs.size() < 500) {
+                } else if (supporter.get("vote").equals("no") && noHubs.size() < 500) {
                     noHubs.put(supporter.get("id"), supporter.get("name"));
-                } else {
-                    // otherwise compute it
-                    float finalScore = computeSupporterScore(supporter);
-                    if (finalScore > 1.45 && yesHubs.size() < 500) {
-                        yesHubs.put(supporter.get("id"), supporter.get("name"));
-                    } else if (finalScore < 0.7 && noHubs.size() < 500) {
-                        noHubs.put(supporter.get("id"), supporter.get("name"));
-                    }
                 }
                 // if the max number of authorities is reached stop
                 if ((yesHubs.size() >= 500) && (noHubs.size() >= 500)) {
@@ -671,19 +691,12 @@ public class Application {
             for (int i = 0; i < brokers.size(); i++) {
                 Document supporter = sim.searchForField("id", nodeMapper.getNode(brokers.get(i).index), 10).get(0);
                 // If he is a politician
-                if (Integer.parseInt(supporter.get("isAYesPol")) == 1 && yesBrokers.size() < 500) {
+                if (supporter.get("vote").equals("yes") && yesBrokers.size() < 500) {
                     yesBrokers.put(supporter.get("id"), supporter.get("name"));
-                } else if (Integer.parseInt(supporter.get("isANoPol")) == 1 && noBrokers.size() < 500) {
+                } else if (supporter.get("vote").equals("no") && noBrokers.size() < 500) {
                     noBrokers.put(supporter.get("id"), supporter.get("name"));
-                } else {
-                    // Otherwise compute the score
-                    float finalScore = computeSupporterScore(supporter);
-                    if (finalScore > 1.45 && yesBrokers.size() < 500) {
-                        yesBrokers.put(supporter.get("id"), supporter.get("name"));
-                    } else if (finalScore < 0.7 && noBrokers.size() < 500) {
-                        noBrokers.put(supporter.get("id"), supporter.get("name"));
-                    }
                 }
+
                 // if the max number of authorities is reached stop
                 if ((yesBrokers.size() >= 500) && (noBrokers.size() >= 500)) {
                     break;
@@ -694,9 +707,9 @@ public class Application {
             printWriter = new PrintWriter(fileWriter);
             // Save yes brokers
             for (String brokerKey : yesBrokers.keySet()) {
-                printWriter.print(brokerKey + "; " +
-                                  yesBrokers.get(brokerKey) + "; " +
-                                  nodeMapper.getId(brokerKey) + "\n");
+                printWriter.print(brokerKey + "; "
+                        + yesBrokers.get(brokerKey) + "; "
+                        + nodeMapper.getId(brokerKey) + "\n");
             }
             printWriter.close();
 
@@ -704,9 +717,9 @@ public class Application {
             printWriter = new PrintWriter(fileWriter);
             // Save no brokers
             for (String brokerKey : noBrokers.keySet()) {
-                printWriter.print(brokerKey + "; " +
-                                  noBrokers.get(brokerKey) + "; " +
-                                  nodeMapper.getId(brokerKey) + "\n");
+                printWriter.print(brokerKey + "; "
+                        + noBrokers.get(brokerKey) + "; "
+                        + nodeMapper.getId(brokerKey) + "\n");
             }
             printWriter.close();
 
@@ -721,24 +734,6 @@ public class Application {
         } catch (InterruptedException ex) {
             Logger.getLogger(Application.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
-
-    // Compute the vote of a supporter on the basis of who he mentioned and which expression and construction used
-    private static float computeSupporterScore(Document supporter) {
-        float yesScore = (float) (Integer.parseInt(supporter.get("yesPolsMentioned"))
-                + 0.5 * Integer.parseInt(supporter.get("yesConstructionsUsed"))
-                + 3 * Integer.parseInt(supporter.get("yesExpressionsUsed")));
-
-        float noScore = (float) (Integer.parseInt(supporter.get("noPolsMentioned"))
-                + 0.5 * Integer.parseInt(supporter.get("noConstructionsUsed"))
-                + 3 * Integer.parseInt(supporter.get("noExpressionsUsed")));
-        // If the sum of the score is at least 8
-        if (yesScore + noScore > 8) // return it
-        {
-            return yesScore / noScore;
-        }
-        // Otherwise it is not possible to determine his vote
-        return 1;
     }
 
     // Save the Connected component subGraph of an initial graph based on our supporters
@@ -870,15 +865,16 @@ public class Application {
                 String[] splittedLine = line.split("\t");
                 g.add(nodeMapper.getId(splittedLine[1]), nodeMapper.getId(splittedLine[0]), Integer.parseInt(splittedLine[2]));
             }
+
             // Get the number of workers
             int worker = (int) (Runtime.getRuntime().availableProcessors());
-            // obtain the initial label by the files of yes and no authorities
-            int[] initLabels = getInitLabel("output/yesAuthorities.txt", "output/noAuthorities.txt", g);
-            // Compute LPA for authorities
-            int[] labelsAuthorities = ComunityLPA.compute(g, .99d, worker, initLabels);
+            // obtain the initial label by the files of yes and no Supporters
+            int[] initLabels = getInitLabel("output/yesSup.txt", "output/noSup.txt", g);
+            // Compute LPA for Supporters
+            int[] labelsSupporters = ComunityLPA.compute(g, .99d, worker, initLabels);
             int yes = 0, no = 0, unclassified = 0;
             // Count the nodes for each label
-            for (int label : labelsAuthorities) {
+            for (int label : labelsSupporters) {
                 switch (label) {
                     case 1:
                         yes++;
@@ -891,7 +887,7 @@ public class Application {
                         break;
                 }
             }
-            System.out.println("+++ AUTHORITIES +++");
+            System.out.println("+++ SUPPORTERS (M) +++");
             System.out.println("YES: " + yes + ", NO: " + no + ", UNCLASSIFIED: " + unclassified);
 
             // obtain the initial label by the files of yes and no hubs
@@ -915,7 +911,7 @@ public class Application {
                         break;
                 }
             }
-            System.out.println("+++ HUBS +++");
+            System.out.println("+++ HUBS (M') +++");
             System.out.println("YES: " + yes + ", NO: " + no + ", UNCLASSIFIED: " + unclassified);
 
             // obtain the initial label by the files of yes and no brokers
@@ -939,14 +935,14 @@ public class Application {
                         break;
                 }
             }
-            System.out.println("+++ BROKERS +++");
+            System.out.println("+++ BROKERS (K) +++");
             System.out.println("YES: " + yes + ", NO: " + no + ", UNCLASSIFIED: " + unclassified);
 
             FileWriter fileWriter = new FileWriter("output/LPA.txt");
             PrintWriter printWriter = new PrintWriter(fileWriter);
             // Save LPA results
             for (int i = 0; i < g.size; i++) {
-                printWriter.print(i + " " + labelsAuthorities[i] + " " + labelsHubs[i] + " " + labelBrokers[i] + "\n");
+                printWriter.print(i + " " + labelsSupporters[i] + " " + labelsHubs[i] + " " + labelBrokers[i] + "\n");
             }
             printWriter.close();
 

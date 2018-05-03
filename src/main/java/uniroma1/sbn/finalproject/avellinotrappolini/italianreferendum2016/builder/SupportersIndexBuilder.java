@@ -27,6 +27,7 @@ import uniroma1.sbn.finalproject.avellinotrappolini.italianreferendum2016.Manage
  * @author Giovanni Trappolini
  */
 public class SupportersIndexBuilder extends IndexBuilder {
+
     // List of expressions of yes
     private ArrayList<String> yesExpressions;
     // List of expressions of no
@@ -44,9 +45,11 @@ public class SupportersIndexBuilder extends IndexBuilder {
     private IntField noExpressionsUsed;
     private IntField isAYesPol;
     private IntField isANoPol;
+    private StringField vote;
 
     /**
      * Initialize Builder params
+     *
      * @param indexPath where the index will be stored
      * @param sourcePath where the data to create the index are stored
      * @param yesExpressions List of expressions of yes
@@ -59,7 +62,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
         this.yesExpressions = yesExpressions;
         this.noExpressions = noExpressions;
         this.sourcePath = sourcePath;
-        
+
         // Initialize the document
         this.supporter = new Document();
         // Initialize its fields
@@ -73,6 +76,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
         this.noExpressionsUsed = new IntField("noExpressionsUsed", 0, Field.Store.YES);
         this.isAYesPol = new IntField("isAYesPol", 0, Field.Store.YES);
         this.isANoPol = new IntField("isANoPol", 0, Field.Store.YES);
+        this.vote = new StringField("vote", "", Field.Store.YES);
 
         // Add the fields to the document
         this.supporter.add(this.name);
@@ -85,6 +89,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
         this.supporter.add(this.noExpressionsUsed);
         this.supporter.add(this.isAYesPol);
         this.supporter.add(this.isANoPol);
+        this.supporter.add(this.vote);
     }
 
     @Override
@@ -93,7 +98,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
         setBuilderParams(indexPath);
         // Get all the supporters
         HashMap<String, Supporter> supporters = collectIndexElements();
-        
+
         // For each supporter id
         for (String key : supporters.keySet()) {
             // Get the supporter
@@ -111,21 +116,34 @@ public class SupportersIndexBuilder extends IndexBuilder {
             if (s.getIsAYesPol()) {
                 this.isAYesPol.setIntValue(1);
                 this.isANoPol.setIntValue(0);
-            // If the supporter is a no politician
+                this.vote.setStringValue("yes");
+                // If the supporter is a no politician
             } else if (s.getIsANoPol()) {
                 this.isAYesPol.setIntValue(0);
                 this.isANoPol.setIntValue(1);
-            // Otherwise
+                this.vote.setStringValue("no");
+                // Otherwise
             } else {
                 this.isAYesPol.setIntValue(0);
                 this.isANoPol.setIntValue(0);
+                float finalScore = computeSupporterScore(s);
+                if (finalScore > 1.45) {
+                    this.vote.setStringValue("yes");
+                } else if (finalScore < 0.7) {
+                    this.vote.setStringValue("no");
+                } else {
+                    this.vote.setStringValue("-");
+                }
             }
+
             // Write document
             this.writer.addDocument(this.supporter);
         }
         // Make a commit
+
         this.writer.commit();
         // Close the writer
+
         this.writer.close();
     }
 
@@ -188,7 +206,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
                     // Add a +1 to the counter of yes pols mentioned
                     Supporter supporter = supporters.get(userId);
                     supporter.setYesPolsMentioned(supporter.getYesPolsMentioned() + 1);
-                // Otherwise create a new supporter 
+                    // Otherwise create a new supporter 
                 } else {
                     Supporter supporter = new Supporter(tim.ir.document(doc.doc).get("userId"), tim.ir.document(doc.doc).get("name"));
                     // Set the yes pols mentioned counter to 1
@@ -224,7 +242,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
                 representativeWordsMap = mapper.readValue(new File(sourcePath),
                         new TypeReference<HashMap<String, ArrayList<String>>>() {
                 });
-                
+
                 // Add them Yes words
                 ArrayList<String> yesTerms = representativeWordsMap.get("yes");
                 System.out.println("Adding for terms:");
@@ -253,7 +271,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
                         supporters.put(supporter.getId(), supporter);
                     }
                 }
-                
+
                 // Do the same for no words
                 ArrayList<String> noTerms = representativeWordsMap.get("no");
                 ArrayList<String> noWords = new ArrayList<String>();
@@ -278,7 +296,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
                         supporters.put(supporter.getId(), supporter);
                     }
                 }
-            // Otherwise, If core or connected components are used as construction
+                // Otherwise, If core or connected components are used as construction
             } else {
                 ObjectMapper mapper = new ObjectMapper();
                 // Get the rel constructions from the json and put it into a map
@@ -286,7 +304,7 @@ public class SupportersIndexBuilder extends IndexBuilder {
                 representativeWordsMap = mapper.readValue(new File(sourcePath),
                         new TypeReference<HashMap<String, ArrayList<ArrayList<String>>>>() {
                 });
-                
+
                 // And do the same procedure as before
                 ArrayList<ArrayList<String>> yesCores = representativeWordsMap.get("yes");
                 System.out.println("Adding for Cores or CC:");
@@ -357,9 +375,24 @@ public class SupportersIndexBuilder extends IndexBuilder {
             return supporters;
 
         } catch (IOException ex) {
-            Logger.getLogger(SupportersIndexManager.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(SupportersIndexManager.class
+                    .getName()).log(Level.SEVERE, null, ex);
         }
 
         return null;
+    }
+    
+    // Compute the vote of a supporter on the basis of who he mentioned and which expression and construction used
+    private static float computeSupporterScore(Supporter supporter) {
+        float yesScore = (float) (supporter.getYesPolsMentioned() + 0.5 * supporter.getYesCostructionsUsed() + 3 * supporter.getYesExpressionsUsed());
+
+        float noScore = (float) (supporter.getNoPolsMentioned() + 0.5 * supporter.getNoCostructionsUsed() + 3 * supporter.getNoExpressionsUsed());
+        // If the sum of the score is at least 8
+        if (yesScore + noScore > 8) // return it
+        {
+            return yesScore / noScore;
+        }
+        // Otherwise it is not possible to determine his vote
+        return 1;
     }
 }

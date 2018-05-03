@@ -84,7 +84,7 @@ public abstract class IndexManager {
             Query q;
             
             // if the field is a LongField
-            if (fieldName.equals("date")) {
+            if (fieldName.equals("date") || fieldName.equals("userId")) {
                 //Convert the fieldValue in a ByteRef
                 BytesRef ref = new BytesRef();
                 NumericUtils.longToPrefixCoded(Long.parseLong(fieldValue), 0, ref);
