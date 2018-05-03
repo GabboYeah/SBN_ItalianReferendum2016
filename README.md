@@ -2,11 +2,11 @@
 A social and behaviour network study about tweets network stream during the referendum period (6 december 2016)
 
 
-User Guide:
+### User Guide:
 In order to run the project you have to clone this directory using the git command:
 
 ```bash
-\$ git clone https://github.com/GabboYeah/SBN_ItalianReferendum2016.git
+$ git clone https://github.com/GabboYeah/SBN_ItalianReferendum2016.git
 ```
 
 After this it important to put into fill the input directory with the following files:
